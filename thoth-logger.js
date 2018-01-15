@@ -38,10 +38,14 @@
             info: data
         };
 
-        var req = new XMLHttpRequest();
-        req.open("POST", server);
-        req.setRequestHeader("Content-Type", "application/json");
-        req.send(JSON.stringify(dataToPost));
+        var params = {
+            method: "post",
+            body: JSON.stringify(dataToPost),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        };
+        fetch(server, params);
     }
 
     // Return the functions that you want to be publicly accessible
