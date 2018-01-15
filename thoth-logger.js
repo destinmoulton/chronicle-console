@@ -42,7 +42,7 @@
             method: "post",
             body: JSON.stringify(dataToPost),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "text/plain"
             }
         };
         fetch(server, params);
