@@ -18,14 +18,30 @@
     var server = "";
     var app = "";
 
-    function config(config) {}
+    function init(config) {
+        server = config.server;
+        app = config.app;
+    }
 
     function log(data, passedType) {
         var type = passedType || "log";
         if (!server || !app) {
-            console.error("ThothLogger :: No server or app name provided.");
+            console.error(
+                "ThothLogger :: No server or app name provided. Run init() first."
+            );
             return false;
         }
+
+        var dataToPost = {
+            app: app,
+            type: type,
+            info: data
+        };
+
+        var req = new XMLHttpRequest();
+        req.open("POST", server);
+        req.setRequestHeader("Content-Type", "application/json");
+        req.send(JSON.stringify(dataToPost));
     }
 
     // Return the functions that you want to be publicly accessible
