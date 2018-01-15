@@ -15,17 +15,22 @@
 })(this, "ThothLogger", function(global) {
     "use strict";
 
-    var server = "";
-    var app = "";
+    var serverURL = "";
+    var appName = "";
 
-    function init(config) {
-        server = config.server;
-        app = config.app;
+    function init(config, app) {
+        if (typeof config === "string" && typeof app === "string") {
+            serverURL = config;
+            appName = app;
+        } else if (typeof config === "object") {
+            serverURL = config.server || "";
+            app = config.app || "";
+        }
     }
 
     function log(data, passedType) {
         var type = passedType || "log";
-        if (!server || !app) {
+        if (!serverURL || !appName) {
             console.error(
                 "ThothLogger :: No server or app name provided. Run init() first."
             );
@@ -33,7 +38,7 @@
         }
 
         var dataToPost = {
-            app: app,
+            app: appName,
             type: type,
             info: data
         };
@@ -45,7 +50,8 @@
                 "Content-Type": "text/plain"
             }
         };
-        fetch(server, params);
+        fetch(serverURL, params);
+        return true;
     }
 
     // Return the functions that you want to be publicly accessible
