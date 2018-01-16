@@ -17,28 +17,35 @@
 
     var serverURL = "";
     var appName = "";
+    var clientInfo = null;
 
-    function init(config, app) {
-        if (typeof config === "string" && typeof app === "string") {
+    function init(config, app, client) {
+        if (
+            typeof config === "string" &&
+            typeof app === "string" &&
+            typeof clientInfo === "object"
+        ) {
             serverURL = config;
             appName = app;
+            clientInfo = client;
         } else if (typeof config === "object") {
             serverURL = config.server || "";
             app = config.app || "";
+            clientInfo = config.client || null;
         }
     }
 
-    function log(data, passedType) {
-        var type = passedType || "log";
-        if (!serverURL || !appName) {
+    function _sendData(data, type) {
+        if (!serverURL || !appName || !clientInfo) {
             console.error(
-                "ThothLogger :: No server or app name provided. Run init() first."
+                "ThothLogger :: No server, app, or client info provided. Run init() first."
             );
             return false;
         }
 
         var dataToPost = {
             app: appName,
+            client: clientInfo,
             type: type,
             info: data
         };
@@ -54,9 +61,18 @@
         return true;
     }
 
-    // Return the functions that you want to be publicly accessible
+    function log(data, passedType) {
+        var type = passedType || "log";
+        return _sendData(data, type);
+    }
+
+    function error(data) {
+        return _sendData(data, "error");
+    }
+
     return {
         init: init,
-        log: log
+        log: log,
+        error: error
     };
 });
