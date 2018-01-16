@@ -105,7 +105,7 @@
     }
 
     function _now() {
-        if (performance && performance.now === "function") {
+        if (performance.now !== undefined) {
             return performance.now();
         } else {
             return Date.now();
@@ -176,8 +176,8 @@
     function timeEnd(label) {
         if (alsoConsole) console.timeEnd(label);
 
-        if (typeof label === "string" && _timers.hasOwnProperty(label)) {
-            var elapsed = _now() - _timers[label];
+        if (typeof label === "string" && _timers[label] !== undefined) {
+            var elapsed = (_now() - _timers[label]).toFixed(2);
             var data = `${label}: ${elapsed}ms`;
 
             return _sendData(data, "time");
