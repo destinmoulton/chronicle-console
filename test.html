@@ -5,7 +5,7 @@
     <script src="thoth-logger.js"></script>
     <script type="text/javascript">
         function startTest(){
-            
+            console.time("test");
             var server = document.getElementById("input-server").value;
             var app = document.getElementById("input-app").value;
             var data = document.getElementById("input-data").value;
@@ -13,7 +13,7 @@
             
             if( server && app && data){
                 ThothLogger.init(server, app, window.navigator);
-                ThothLogger.assert(!true, "Test Message", {"object_to_pass":"passed object"});
+                ThothLogger.trace("Tracing at position 1");
                 if(type === "error"){
                     ThothLogger.error(data);
                 } else {
@@ -21,6 +21,7 @@
                 }
                 
             }
+            console.timeEnd("test");
         }
     </script>
 </head>

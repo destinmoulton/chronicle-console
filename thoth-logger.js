@@ -99,6 +99,14 @@
         return Array.prototype.slice.call(args);
     }
 
+    // From https://stackoverflow.com/a/635852/470577
+    function _stackTrace() {
+        var err = new Error();
+        var stackString = err.stack;
+        // Remove the trace lines for this and trace() call
+        return stackString.split("\n").slice(2, -1);
+    }
+
     function assert(assertion) {
         if (!assertion) {
             var args = _argumentsToArray(arguments);
@@ -130,6 +138,15 @@
         }
     }
 
+    function trace() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            data.push(_stackTrace());
+            return _sendData(data, "trace");
+        }
+    }
+
     function warn() {
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -141,7 +158,10 @@
     return {
         init: init,
         assert: assert,
+        error: error,
+        info: info,
         log: log,
-        error: error
+        trace: trace,
+        warn: warn
     };
 });
