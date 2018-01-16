@@ -34,6 +34,10 @@
         _options.clientInfo = config.clientInfo || null;
         _options.alsoConsole = config.toConsole || false;
         _options.alsoConsoleNonStandard = config.nonStandardConsole || false;
+
+        if (config.overwriteGlobalConsole) {
+            _overwriteGlobalConsole();
+        }
     }
 
     function _collateBrowserInfo(info) {
@@ -305,6 +309,10 @@
         profileEnd: profileEnd,
         timeStamp: timeStamp
     };
+
+    function _overwriteGlobalConsole() {
+        global.console = publicMethods;
+    }
 
     return publicMethods;
 });

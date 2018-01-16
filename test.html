@@ -16,10 +16,10 @@
                     server: server,
                     app: app,
                     clientInfo: window.navigator,
-                    toConsole: false
+                    toConsole: false,
+                    overwriteGlobalConsole: true
                 }
                 ThothLogger.init(config);
-                window.console = ThothLogger;
                 console.group();
                 console.time("A");
                 console.group();
