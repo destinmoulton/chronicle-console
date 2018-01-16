@@ -179,7 +179,7 @@
         if (typeof label === "string" && _timers[label] !== undefined) {
             var elapsed = (_now() - _timers[label]).toFixed(2);
             var data = `${label}: ${elapsed}ms`;
-
+            delete _timers[label];
             return _sendData(data, "time");
         }
     }
