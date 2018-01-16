@@ -12,23 +12,30 @@
             var type = document.getElementsByName("log-type")[0].value;
             
             if( server && app && data){
-                ThothLogger.init(server, app, window.navigator, true);
-                ThothLogger.group();
-                ThothLogger.time("A");
-                ThothLogger.group();
-                ThothLogger.time("B");
+                var config = {
+                    server: server,
+                    app: app,
+                    clientInfo: window.navigator,
+                    toConsole: false
+                }
+                ThothLogger.init(config);
+                window.console = ThothLogger;
+                console.group();
+                console.time("A");
+                console.group();
+                console.time("B");
                 setTimeout(function(){
-                    ThothLogger.timeEnd("A");
-                    ThothLogger.groupEnd();
+                    console.timeEnd("A");
+                    console.groupEnd();
                 }, 1200);
                 setTimeout(function(){
-                    ThothLogger.timeEnd("B");
-                    ThothLogger.groupEnd();
+                    console.timeEnd("B");
+                    console.groupEnd();
                 }, 2200);
                 if(type === "error"){
-                    ThothLogger.error(data);
+                    console.error(data);
                 } else {
-                    ThothLogger.log(data);
+                    console.log(data);
                 }
                 
             }

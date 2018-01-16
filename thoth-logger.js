@@ -15,30 +15,25 @@
 })(this, "ThothLogger", function(global) {
     "use strict";
 
-    var serverURL = "";
-    var appName = "";
-    var clientInfo = null;
-    var alsoConsole = false;
+    var _options = {
+        serverURL: "",
+        appName: "",
+        clientInfo: null,
+        alsoConsole: false,
+        alsoConsoleNonStandard: false
+    };
+
+    var _console = global.console;
+
     var _timers = Object.create(null);
     var _groupStack = [];
 
-    function init(config, app, client, toConsole) {
-        if (
-            typeof config === "string" &&
-            typeof app === "string" &&
-            typeof clientInfo === "object" &&
-            typeof toConsole === "boolean"
-        ) {
-            serverURL = config;
-            appName = app;
-            clientInfo = client;
-            alsoConsole = toConsole;
-        } else if (typeof config === "object") {
-            serverURL = config.server || "";
-            app = config.app || "";
-            clientInfo = config.client || null;
-            alsoConsole = config.toConsole || false;
-        }
+    function init(config) {
+        _options.serverURL = config.server || "";
+        _options.appName = config.app || "";
+        _options.clientInfo = config.clientInfo || null;
+        _options.alsoConsole = config.toConsole || false;
+        _options.alsoConsoleNonStandard = config.nonStandardConsole || false;
     }
 
     function _collateBrowserInfo(info) {
@@ -57,6 +52,12 @@
     }
 
     function _logData(data, type) {
+        if (data.length && data.length === 1) {
+            // Don't log an array if there is only one
+            // piece of data
+            data = data[0];
+        }
+
         if (_groupStack.length === 0) {
             return _sendData(data, type);
         }
@@ -69,26 +70,20 @@
     }
 
     function _sendData(data, type) {
-        if (!serverURL || !appName || !clientInfo) {
-            console.error(
+        if (!_options.serverURL || !_options.appName || !_options.clientInfo) {
+            _console.error(
                 "ThothLogger :: No server, app, or client info provided. Run init() first."
             );
             return false;
         }
 
         var cleanClientInfo = {};
-        if (clientInfo.userAgent) {
-            cleanClientInfo = _collateBrowserInfo(clientInfo);
-        }
-
-        if (data.length && data.length === 1) {
-            // Don't send an array if there is only one
-            // piece of data
-            data = data[0];
+        if (_options.clientInfo.userAgent) {
+            cleanClientInfo = _collateBrowserInfo(_options.clientInfo);
         }
 
         var dataToPost = {
-            app: appName,
+            app: _options.appName,
             client: cleanClientInfo,
             type: type,
             info: data
@@ -101,7 +96,7 @@
                 "Content-Type": "text/plain"
             }
         };
-        fetch(serverURL, params);
+        fetch(_options.serverURL, params);
         return true;
     }
 
@@ -133,8 +128,13 @@
         return stackString.split("\n").slice(2, -1);
     }
 
+    function _addGroupToStack() {
+        // Add an array to the stack
+        _groupStack.unshift([]);
+    }
+
     function assert(assertion) {
-        if (alsoConsole) console.assert.apply(this, arguments);
+        if (_options.alsoConsole) _console.assert.apply(this, arguments);
 
         if (!assertion) {
             var args = _argumentsToArray(arguments);
@@ -143,7 +143,7 @@
     }
 
     function error() {
-        if (alsoConsole) console.error.apply(this, arguments);
+        if (_options.alsoConsole) _console.error.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -153,14 +153,20 @@
     }
 
     function group() {
-        if (alsoConsole) console.group.apply(this, arguments);
+        if (_options.alsoConsole) _console.group.apply(this, arguments);
 
-        // Add an array to the stack
-        _groupStack.unshift([]);
+        _addGroupToStack();
+    }
+
+    function groupCollapsed() {
+        if (_options.alsoConsole)
+            _console.groupCollapsed.apply(this, arguments);
+
+        _addGroupToStack();
     }
 
     function groupEnd() {
-        if (alsoConsole) console.groupEnd.apply(this, arguments);
+        if (_options.alsoConsole) _console.groupEnd.apply(this, arguments);
 
         var head = _groupStack.shift();
         if (_groupStack.length > 0) {
@@ -172,7 +178,7 @@
     }
 
     function info() {
-        if (alsoConsole) console.info.apply(this, arguments);
+        if (_options.alsoConsole) _console.info.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -182,7 +188,7 @@
     }
 
     function log() {
-        if (alsoConsole) console.log.apply(this, arguments);
+        if (_options.alsoConsole) _console.log.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -192,13 +198,13 @@
     }
 
     function table() {
-        if (alsoConsole) console.table.apply(this, arguments);
+        if (_options.alsoConsole) _console.table.apply(this, arguments);
 
         log.apply(this, arguments);
     }
 
     function time(label) {
-        if (alsoConsole) console.time(label);
+        if (_options.alsoConsole) _console.time(label);
 
         if (typeof label === "string") {
             _timers[label] = _now();
@@ -206,7 +212,7 @@
     }
 
     function timeEnd(label) {
-        if (alsoConsole) console.timeEnd(label);
+        if (_options.alsoConsole) _console.timeEnd(label);
 
         if (typeof label === "string" && _timers[label] !== undefined) {
             var elapsed = (_now() - _timers[label]).toFixed(2);
@@ -217,7 +223,7 @@
     }
 
     function trace() {
-        if (alsoConsole) console.trace.apply(this, arguments);
+        if (_options.alsoConsole) _console.trace.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -228,7 +234,7 @@
     }
 
     function warn() {
-        if (alsoConsole) console.warn.apply(this, arguments);
+        if (_options.alsoConsole) _console.warn.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -237,7 +243,46 @@
         }
     }
 
-    return {
+    /**
+     * Stubs for console functions that aren't logged
+     */
+    function clear() {
+        if (_options.alsoConsole) _console.clear();
+    }
+
+    function count() {
+        if (_options.alsoConsole) _console.count.apply(this, arguments);
+    }
+
+    /**
+     * Stubs for Non-Standard console functions
+     */
+    function dir() {
+        if (_options.alsoConsoleNonStandard)
+            _console.dir.apply(this, arguments);
+    }
+
+    function dirxml() {
+        if (_options.alsoConsoleNonStandard)
+            _console.dirxml.apply(this, arguments);
+    }
+
+    function profile() {
+        if (_options.alsoConsoleNonStandard)
+            _console.profile.apply(this, arguments);
+    }
+
+    function profileEnd() {
+        if (_options.alsoConsoleNonStandard)
+            _console.profileEnd.apply(this, arguments);
+    }
+
+    function timeStamp() {
+        if (_options.alsoConsoleNonStandard)
+            _console.timeStamp.apply(this, arguments);
+    }
+
+    var publicMethods = {
         init: init,
         assert: assert,
         error: error,
@@ -249,6 +294,17 @@
         time: time,
         timeEnd: timeEnd,
         trace: trace,
-        warn: warn
+        warn: warn,
+
+        // Non-logged or non-standard
+        clear: clear,
+        count: count,
+        dir: dir,
+        dirxml: dirxml,
+        profile: profile,
+        profileEnd: profileEnd,
+        timeStamp: timeStamp
     };
+
+    return publicMethods;
 });
