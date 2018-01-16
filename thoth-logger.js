@@ -20,8 +20,7 @@
     var clientInfo = null;
     var alsoConsole = false;
     var _timers = Object.create(null);
-    var _isGroupActive = false;
-    var _group = [];
+    var _groupStack = [];
 
     function init(config, app, client, toConsole) {
         if (
@@ -58,10 +57,12 @@
     }
 
     function _logData(data, type) {
-        if (!_isGroupActive) {
+        if (_groupStack.length === 0) {
             return _sendData(data, type);
         }
-        _group.push({
+
+        // The zeroth element (head) holds the current group
+        _groupStack[0].push({
             log: data,
             type: type
         });
@@ -151,6 +152,25 @@
         }
     }
 
+    function group() {
+        if (alsoConsole) console.group.apply(this, arguments);
+
+        // Add an array to the stack
+        _groupStack.unshift([]);
+    }
+
+    function groupEnd() {
+        if (alsoConsole) console.groupEnd.apply(this, arguments);
+
+        var head = _groupStack.shift();
+        if (_groupStack.length > 0) {
+            // Put the finished group into the still active group
+            _groupStack[0].push(head);
+        } else {
+            _logData(head, "group");
+        }
+    }
+
     function info() {
         if (alsoConsole) console.info.apply(this, arguments);
 
@@ -221,6 +241,8 @@
         init: init,
         assert: assert,
         error: error,
+        group: group,
+        groupEnd: groupEnd,
         info: info,
         log: log,
         table: table,

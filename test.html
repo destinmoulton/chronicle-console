@@ -13,13 +13,17 @@
             
             if( server && app && data){
                 ThothLogger.init(server, app, window.navigator, true);
+                ThothLogger.group();
                 ThothLogger.time("A");
+                ThothLogger.group();
                 ThothLogger.time("B");
                 setTimeout(function(){
                     ThothLogger.timeEnd("A");
+                    ThothLogger.groupEnd();
                 }, 1200);
                 setTimeout(function(){
                     ThothLogger.timeEnd("B");
+                    ThothLogger.groupEnd();
                 }, 2200);
                 if(type === "error"){
                     ThothLogger.error(data);
@@ -28,7 +32,6 @@
                 }
                 
             }
-            console.timeEnd("test");
         }
     </script>
 </head>
