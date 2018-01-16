@@ -20,6 +20,8 @@
     var clientInfo = null;
     var alsoConsole = false;
     var _timers = Object.create(null);
+    var _isGroupActive = false;
+    var _group = [];
 
     function init(config, app, client, toConsole) {
         if (
@@ -53,6 +55,16 @@
         browserInfo.userAgent = info.userAgent || "";
         browserInfo.oscpu = info.oscpu || "";
         return browserInfo;
+    }
+
+    function _logData(data, type) {
+        if (!_isGroupActive) {
+            return _sendData(data, type);
+        }
+        _group.push({
+            log: data,
+            type: type
+        });
     }
 
     function _sendData(data, type) {
@@ -125,7 +137,7 @@
 
         if (!assertion) {
             var args = _argumentsToArray(arguments);
-            return _sendData(_collateArguments(args.slice(1)), "assert");
+            return _logData(_collateArguments(args.slice(1)), "assert");
         }
     }
 
@@ -135,7 +147,7 @@
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
-            return _sendData(data, "error");
+            return _logData(data, "error");
         }
     }
 
@@ -145,7 +157,7 @@
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
-            return _sendData(data, "info");
+            return _logData(data, "info");
         }
     }
 
@@ -155,7 +167,7 @@
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
-            return _sendData(data, "log");
+            return _logData(data, "log");
         }
     }
 
@@ -180,7 +192,7 @@
             var elapsed = (_now() - _timers[label]).toFixed(2);
             var data = `${label}: ${elapsed}ms`;
             delete _timers[label];
-            return _sendData(data, "time");
+            return _logData(data, "time");
         }
     }
 
@@ -191,7 +203,7 @@
         if (args[0]) {
             var data = _collateArguments(args);
             data.push(_stackTrace());
-            return _sendData(data, "trace");
+            return _logData(data, "trace");
         }
     }
 
@@ -201,7 +213,7 @@
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
-            return _sendData(data, "warn");
+            return _logData(data, "warn");
         }
     }
 
