@@ -19,6 +19,7 @@
     var appName = "";
     var clientInfo = null;
     var alsoConsole = false;
+    var _timers = Object.create(null);
 
     function init(config, app, client, toConsole) {
         if (
@@ -103,6 +104,14 @@
         return Array.prototype.slice.call(args);
     }
 
+    function _now() {
+        if (performance && performance.now === "function") {
+            return performance.now();
+        } else {
+            return Date.now();
+        }
+    }
+
     // From https://stackoverflow.com/a/635852/470577
     function _stackTrace() {
         var err = new Error();
@@ -156,6 +165,25 @@
         log.apply(this, arguments);
     }
 
+    function time(label) {
+        if (alsoConsole) console.time(label);
+
+        if (typeof label === "string") {
+            _timers[label] = _now();
+        }
+    }
+
+    function timeEnd(label) {
+        if (alsoConsole) console.timeEnd(label);
+
+        if (typeof label === "string" && _timers.hasOwnProperty(label)) {
+            var elapsed = _now() - _timers[label];
+            var data = `${label}: ${elapsed}ms`;
+
+            return _sendData(data, "time");
+        }
+    }
+
     function trace() {
         if (alsoConsole) console.trace.apply(this, arguments);
 
@@ -184,6 +212,8 @@
         info: info,
         log: log,
         table: table,
+        time: time,
+        timeEnd: timeEnd,
         trace: trace,
         warn: warn
     };
