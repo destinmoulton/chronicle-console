@@ -18,20 +18,24 @@
     var serverURL = "";
     var appName = "";
     var clientInfo = null;
+    var alsoConsole = false;
 
-    function init(config, app, client) {
+    function init(config, app, client, toConsole) {
         if (
             typeof config === "string" &&
             typeof app === "string" &&
-            typeof clientInfo === "object"
+            typeof clientInfo === "object" &&
+            typeof toConsole === "boolean"
         ) {
             serverURL = config;
             appName = app;
             clientInfo = client;
+            alsoConsole = toConsole;
         } else if (typeof config === "object") {
             serverURL = config.server || "";
             app = config.app || "";
             clientInfo = config.client || null;
+            alsoConsole = config.toConsole || false;
         }
     }
 
@@ -136,6 +140,10 @@
             var data = _collateArguments(args);
             return _sendData(data, "log");
         }
+    }
+
+    function table() {
+        log.apply(this, arguments);
     }
 
     function trace() {
