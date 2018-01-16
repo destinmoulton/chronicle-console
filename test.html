@@ -12,7 +12,7 @@
             var type = document.getElementsByName("log-type")[0].value;
             
             if( server && app && data){
-                ThothLogger.init(server, app, window.navigator);
+                ThothLogger.init(server, app, window.navigator, true);
                 ThothLogger.trace("Tracing at position 1");
                 if(type === "error"){
                     ThothLogger.error(data);

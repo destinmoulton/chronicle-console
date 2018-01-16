@@ -112,6 +112,8 @@
     }
 
     function assert(assertion) {
+        if (alsoConsole) console.assert.apply(this, arguments);
+
         if (!assertion) {
             var args = _argumentsToArray(arguments);
             return _sendData(_collateArguments(args.slice(1)), "assert");
@@ -119,6 +121,8 @@
     }
 
     function error() {
+        if (alsoConsole) console.error.apply(this, arguments);
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -127,6 +131,8 @@
     }
 
     function info() {
+        if (alsoConsole) console.info.apply(this, arguments);
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -135,6 +141,8 @@
     }
 
     function log() {
+        if (alsoConsole) console.log.apply(this, arguments);
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -143,10 +151,14 @@
     }
 
     function table() {
+        if (alsoConsole) console.table.apply(this, arguments);
+
         log.apply(this, arguments);
     }
 
     function trace() {
+        if (alsoConsole) console.trace.apply(this, arguments);
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -156,6 +168,8 @@
     }
 
     function warn() {
+        if (alsoConsole) console.warn.apply(this, arguments);
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -169,6 +183,7 @@
         error: error,
         info: info,
         log: log,
+        table: table,
         trace: trace,
         warn: warn
     };
