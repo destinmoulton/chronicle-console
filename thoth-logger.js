@@ -63,6 +63,12 @@
             cleanClientInfo = _collateBrowserInfo(clientInfo);
         }
 
+        if (data.length && data.length === 1) {
+            // Don't send an array if there is only one
+            // piece of data
+            data = data[0];
+        }
+
         var dataToPost = {
             app: appName,
             client: cleanClientInfo,
@@ -81,17 +87,44 @@
         return true;
     }
 
-    function log(data, passedType) {
-        var type = passedType || "log";
-        return _sendData(data, type);
+    function _collateArguments(args) {
+        var data = [];
+        for (var i = 0; i < args.length; i++) {
+            data.push(JSON.parse(JSON.stringify(args[i])));
+        }
+        return data;
     }
 
-    function error(data) {
-        return _sendData(data, "error");
+    function _argumentsToArray(args) {
+        return Array.prototype.slice.call(args);
+    }
+
+    function assert(assertion) {
+        if (!assertion) {
+            var args = _argumentsToArray(arguments);
+            return _sendData(_collateArguments(args.slice(1)), "assert");
+        }
+    }
+
+    function log() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _sendData(data, "log");
+        }
+    }
+
+    function error() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _sendData(data, "error");
+        }
     }
 
     return {
         init: init,
+        assert: assert,
         log: log,
         error: error
     };
