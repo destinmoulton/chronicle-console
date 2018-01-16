@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <script src="thoth-logger.js"></script>
+    <script type="text/javascript">
+        function startTest(){
+            var server = document.getElementById("input-server").value;
+            var app = document.getElementById("input-app").value;
+            var data = document.getElementById("input-data").value;
+            var type = document.getElementsByName("log-type")[0].value;
+
+            if( server && app && data){
+                ThothLogger.init(server, app, window.navigator);
+                if(type === "error"){
+                    ThothLogger.error(data);
+                } else {
+                    ThothLogger.log(data);
+                }
+                
+            }
+        }
+    </script>
+</head>
+<body>
+    <h4>Thoth Logger test.</h4>
+    <fieldset>
+    <legend>Configuration</legend>
+        Server: <input type="text" id="input-server" size="60"/>
+        <br/>
+        App Test Name: <input type="text" id="input-app" size="60"/>
+    </fieldset>
+    <br/>
+    <fieldset>
+    <legend>Log</legend>
+        <input type="radio" name="log-type" value="log" checked/> Log<br/>
+        <input type="radio" name="log-type" value="error"/> Error<br/>
+        <br/>
+        <textarea id="input-data" rows="4" cols="60" placeholder="Log message here..."></textarea>
+        <br/>
+        <button id="start-test" onClick="startTest()">Send</button>
+    </fieldset>
+</body>
+</html>
