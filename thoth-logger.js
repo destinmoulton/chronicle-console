@@ -35,6 +35,21 @@
         }
     }
 
+    function _collateBrowserInfo(info) {
+        var browserInfo = {};
+        browserInfo.appCodeName = info.appCodeName || "";
+        browserInfo.appName = info.appName || "";
+        browserInfo.appVersion = info.appVersion || "";
+        browserInfo.cookieEnabled = info.cookieEnabled || "";
+        browserInfo.geolocation = info.geolocation || "";
+        browserInfo.language = info.language || "";
+        browserInfo.platform = info.platform || "";
+        browserInfo.product = info.product || "";
+        browserInfo.userAgent = info.userAgent || "";
+        browserInfo.oscpu = info.oscpu || "";
+        return browserInfo;
+    }
+
     function _sendData(data, type) {
         if (!serverURL || !appName || !clientInfo) {
             console.error(
@@ -43,9 +58,14 @@
             return false;
         }
 
+        var cleanClientInfo = {};
+        if (clientInfo.userAgent) {
+            cleanClientInfo = _collateBrowserInfo(clientInfo);
+        }
+
         var dataToPost = {
             app: appName,
-            client: clientInfo,
+            client: cleanClientInfo,
             type: type,
             info: data
         };
