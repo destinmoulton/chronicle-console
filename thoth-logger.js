@@ -122,6 +122,14 @@
         }
     }
 
+    function warn() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _sendData(data, "warn");
+        }
+    }
+
     return {
         init: init,
         assert: assert,
