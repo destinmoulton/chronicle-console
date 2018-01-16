@@ -106,19 +106,27 @@
         }
     }
 
-    function log() {
-        var args = _argumentsToArray(arguments);
-        if (args[0]) {
-            var data = _collateArguments(args);
-            return _sendData(data, "log");
-        }
-    }
-
     function error() {
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
             return _sendData(data, "error");
+        }
+    }
+
+    function info() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _sendData(data, "info");
+        }
+    }
+
+    function log() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _sendData(data, "log");
         }
     }
 
