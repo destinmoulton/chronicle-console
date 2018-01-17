@@ -1,13 +1,13 @@
 {
-  "name": "chronicle-lib",
-  "version": "0.5",
-  "description": "The logging library for the Chronicle API.",
-  "main": "index.js",
-  "repository": "git@github.com:destinmoulton/chronicle-lib.git",
-  "author": "Destin Moulton <destin.moulton@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^4.1.0"
-  }
+    "name": "chronicle-lib",
+    "version": "0.5",
+    "description": "The logging library for the Chronicle API.",
+    "main": "index.js",
+    "repository": "git@github.com:destinmoulton/chronicle-lib.git",
+    "author": "Destin Moulton <destin.moulton@gmail.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "chai": "^4.1.2",
+        "mocha": "^4.1.0"
+    }
 }
