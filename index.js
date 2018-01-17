@@ -23,7 +23,8 @@
         alsoConsoleNonStandard: false
     };
 
-    var _console = global.console;
+    var _fetch = null;
+    var _console = console;
 
     var _timers = Object.create(null);
     var _groupStack = [];
@@ -34,6 +35,12 @@
         _options.clientInfo = config.clientInfo || null;
         _options.alsoConsole = config.toConsole || false;
         _options.alsoConsoleNonStandard = config.nonStandardConsole || false;
+
+        if (fetch !== undefined) {
+            _fetch = fetch;
+        } else {
+            _console.error("ChronicleConsole :: No fetch() method defined.");
+        }
 
         if (config.overwriteGlobalConsole) {
             _overwriteGlobalConsole();
@@ -100,7 +107,9 @@
                 "Content-Type": "text/plain"
             }
         };
-        fetch(_options.serverURL, params);
+
+        _fetch(_options.serverURL, params);
+
         return true;
     }
 
