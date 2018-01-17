@@ -1,5 +1,5 @@
 /**
- * ChronicleLogger
+ * ChronicleConsole
  */
 (function(global, appName, app) {
     // define() the module using AMD/RequireJS
@@ -12,7 +12,7 @@
         // Add the app to the global browser namespace
         global[appName] = app(global);
     }
-})(this, "ChronicleLogger", function(global) {
+})(this, "ChronicleConsole", function(global) {
     "use strict";
 
     var _options = {
@@ -76,7 +76,7 @@
     function _sendData(data, type) {
         if (!_options.serverURL || !_options.appName || !_options.clientInfo) {
             _console.error(
-                "ChronicleLogger :: No server, app, or client info provided. Run init() first."
+                "ChronicleConsole :: No server, app, or client info provided. Run init() first."
             );
             return false;
         }
