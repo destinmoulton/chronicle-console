@@ -6,6 +6,9 @@
     "repository": "git@github.com:destinmoulton/chronicle-lib.git",
     "author": "Destin Moulton <destin.moulton@gmail.com>",
     "license": "MIT",
+    "scripts": {
+        "test": "mocha"
+    },
     "devDependencies": {
         "chai": "^4.1.2",
         "mocha": "^4.1.0"
