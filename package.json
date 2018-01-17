@@ -1,0 +1,9 @@
+{
+  "name": "chronicle-lib",
+  "version": "0.5",
+  "description": "The logging library for the Chronicle API.",
+  "main": "index.js",
+  "repository": "git@github.com:destinmoulton/chronicle-lib.git",
+  "author": "Destin Moulton <destin.moulton@gmail.com>",
+  "license": "MIT"
+}
