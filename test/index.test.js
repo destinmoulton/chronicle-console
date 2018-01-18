@@ -8,9 +8,9 @@ const nodeFetch = require("node-fetch");
 const ChronicleConsole = require("../index");
 
 // The test data
-const TEST_DATA = require("./data");
+const TEST_DATA = require("./lib/data");
 
-const generateExpectedFetchBody = require("./generateExpectedFetchBody");
+const generateExpectedFetchBody = require("./lib/generateExpectedFetchBody");
 
 const expect = chai.expect;
 
