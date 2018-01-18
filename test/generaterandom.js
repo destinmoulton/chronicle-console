@@ -2,25 +2,32 @@ const faker = require("faker");
 
 const fakerFunctions = require("./fakeables");
 
-function generateRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
+// min inclusive, max inclusive random number
+function generateRandomInt(min, max) {
+    const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+    return rand;
 }
+
 function getRandomFaker() {
     const parents = Object.keys(fakerFunctions);
 
-    const randomKeyIndex = generateRandomInt(parents.length);
+    const randomKeyIndex = generateRandomInt(0, parents.length - 1);
 
     const parentFaker = parents[randomKeyIndex];
 
     const generators = fakerFunctions[parentFaker];
 
-    const randomGenIndex = generateRandomInt(generators.length);
+    const randomGenIndex = generateRandomInt(0, generators.length - 1);
 
     const childFaker = generators[randomGenIndex];
+
+    const data =
+        faker[parentFaker][childFaker]() ||
+        `UNKNOWN FAKER FUNCTION ${parentFaker} > ${childFaker}`;
     return {
         parent: parentFaker,
         child: childFaker,
-        data: faker[parentFaker][childFaker]()
+        data: `${data}`
     };
 }
 
@@ -30,7 +37,7 @@ function generateRandomString() {
 }
 
 function generateRandomObject() {
-    const numElements = generateRandomInt(30);
+    const numElements = generateRandomInt(1, 6);
 
     const obj = {};
     for (var i = 0; i < numElements; i++) {
@@ -41,7 +48,7 @@ function generateRandomObject() {
 }
 
 function generateRandomArray() {
-    const numElements = generateRandomInt(50);
+    const numElements = generateRandomInt(1, 10);
 
     const arr = [];
     for (var i = 0; i < numElements; i++) {
@@ -52,7 +59,7 @@ function generateRandomArray() {
 }
 
 function generateRandomElement() {
-    const type = generateRandomInt(3);
+    const type = generateRandomInt(0, 2);
     switch (type) {
         case 0:
             return generateRandomString();
@@ -64,10 +71,15 @@ function generateRandomElement() {
 }
 
 function generateRandomParameters() {
-    const count = generateRandomInt(6);
+    const count = generateRandomInt(1, 6);
     let params = [];
     for (var i = 0; i < count; i++) {
         params.push(generateRandomElement());
+    }
+
+    if (params.length === 0) {
+        // MAKE SURE THAT PARAMS ARE GENERATED
+        return generateRandomParameters();
     }
     return params;
 }
