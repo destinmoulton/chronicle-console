@@ -7,6 +7,8 @@ function isParamValid(param) {
 
     if (_.isArray(param) || _.isString(param)) {
         return param.length > 0;
+    } else if (_.isNumber(param)) {
+        return true;
     } else if (_.isObject(param)) {
         return !_.isEmpty(param);
     }
@@ -28,7 +30,7 @@ function generateExpectedFetchBody(params) {
             }
         }
     } else {
-        data = params[0];
+        data = JSON.parse(JSON.stringify(params[0]));
     }
 
     return data;
