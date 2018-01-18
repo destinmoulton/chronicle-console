@@ -63,7 +63,12 @@
     }
 
     function _logData(data, type) {
-        if (data.length && data.length === 1) {
+        if (!_isArray(data) || data.length === 0) {
+            // Only allow arrays
+            return true;
+        }
+
+        if (data.length === 1) {
             // Don't log an array if there is only one
             // piece of data
             data = data[0];
@@ -113,10 +118,41 @@
         return true;
     }
 
+    function _isArray(arg) {
+        return Object.prototype.toString.call(arg) === "[object Array]";
+    }
+
+    function _isObject(arg) {
+        return arg !== null && typeof arg === "object";
+    }
+
+    function _isObjectEmpty(arg) {
+        var hasOwnProperty = Object.prototype.hasOwnProperty;
+        for (var key in arg) {
+            if (hasOwnProperty.call(arg, key)) return false;
+        }
+        return true;
+    }
+
+    function _isArgEmpty(arg) {
+        if (_isArray(arg)) {
+            // Arrays
+            return arg.length === 0;
+        } else if (_isObject(arg)) {
+            return _isObjectEmpty(arg);
+        } else if (typeof arg === "string" || arg instanceof String) {
+            return arg.length === 0;
+        }
+
+        return false;
+    }
+
     function _collateArguments(args) {
         var data = [];
         for (var i = 0; i < args.length; i++) {
-            data.push(JSON.parse(JSON.stringify(args[i])));
+            if (!_isArgEmpty(args[i])) {
+                data.push(JSON.parse(JSON.stringify(args[i])));
+            }
         }
         return data;
     }
@@ -186,7 +222,7 @@
             // Put the finished group into the still active group
             _groupStack[0].push(head);
         } else {
-            _logData(head, "group");
+            return _logData(head, "group");
         }
     }
 
@@ -213,7 +249,11 @@
     function table() {
         if (_options.alsoConsole) _console.table.apply(this, arguments);
 
-        log.apply(this, arguments);
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _logData(data, "table");
+        }
     }
 
     function time(label) {
