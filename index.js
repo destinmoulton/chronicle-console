@@ -134,6 +134,10 @@
         return true;
     }
 
+    function _isArgDefined(arg) {
+        return arg !== undefined && arg !== null;
+    }
+
     function _isArgEmpty(arg) {
         if (_isArray(arg)) {
             // Arrays
@@ -150,8 +154,9 @@
     function _collateArguments(args) {
         var data = [];
         for (var i = 0; i < args.length; i++) {
-            if (!_isArgEmpty(args[i])) {
-                data.push(JSON.parse(JSON.stringify(args[i])));
+            const arg = args[i];
+            if (_isArgDefined(arg) && !_isArgEmpty(arg)) {
+                data.push(JSON.parse(JSON.stringify(arg)));
             }
         }
         return data;
