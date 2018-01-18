@@ -1,3 +1,9 @@
+/**
+ * Generate random objects, arrays, and strings
+ * for testing.
+ *
+ * Uses the faker library.
+ */
 const faker = require("faker");
 
 const fakerFunctions = require("./fakeables");
@@ -37,7 +43,7 @@ function generateRandomString() {
 }
 
 function generateRandomObject() {
-    const numElements = generateRandomInt(1, 6);
+    const numElements = generateRandomInt(0, 6);
 
     const obj = {};
     for (var i = 0; i < numElements; i++) {
@@ -48,7 +54,7 @@ function generateRandomObject() {
 }
 
 function generateRandomArray() {
-    const numElements = generateRandomInt(1, 10);
+    const numElements = generateRandomInt(0, 10);
 
     const arr = [];
     for (var i = 0; i < numElements; i++) {
@@ -58,8 +64,11 @@ function generateRandomArray() {
     return arr;
 }
 
+/**
+ * Randomly generate either a string, object, array, or number.
+ */
 function generateRandomElement() {
-    const type = generateRandomInt(0, 2);
+    const type = generateRandomInt(0, 3);
     switch (type) {
         case 0:
             return generateRandomString();
@@ -67,6 +76,8 @@ function generateRandomElement() {
             return generateRandomObject();
         case 2:
             return generateRandomArray();
+        case 3:
+            return generateRandomInt(0, 999999);
     }
 }
 
