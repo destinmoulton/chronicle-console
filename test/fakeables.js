@@ -113,17 +113,5 @@ module.exports = {
         "image",
         "locale",
         "alphaNumeric"
-    ],
-    system: [
-        "fileName",
-        "commonFileName",
-        "mimeType",
-        "commonFileType",
-        "commonFileExt",
-        "fileType",
-        "fileExt",
-        "directoryPath",
-        "filePath",
-        "semver"
     ]
 };
