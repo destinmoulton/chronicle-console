@@ -4,8 +4,13 @@ const chai = require("chai");
 const fetchMock = require("fetch-mock");
 const nodeFetch = require("node-fetch");
 
+// The Object we are going to test
 const ChronicleConsole = require("../index");
-const generateRandomParams = require("./generaterandom");
+
+// The test data
+const TEST_DATA = require("./data");
+
+const generateExpectedFetchBody = require("./generateExpectedFetchBody");
 
 const expect = chai.expect;
 
@@ -19,28 +24,14 @@ const EXPECTED_METHOD = "post";
 
 const BASIC_CONSOLE_METHODS = ["error", "info", "log", "table", "warn"];
 
-function expectedBody(params) {
-    let data = null;
-    if (params.length > 1) {
-        data = [];
-        for (let i = 0; i < params.length; i++) {
-            data.push(JSON.parse(JSON.stringify(params[i])));
-        }
-    } else {
-        data = params[0];
-    }
-
-    return data;
-}
-
 // Monitor all POSTs
 fetchMock.post(SERVER, 200);
 
 describe("ChronicleLogger", () => {
-    describe("Logs to Server", () => {
+    describe("Does Not Log", () => {
         BASIC_CONSOLE_METHODS.forEach(method => {
-            describe("using console method ", () => {
-                let _randomParams = [];
+            describe("Empty Data", () => {
+                let _emptyParams = [];
 
                 beforeEach(() => {
                     let config = {
@@ -50,44 +41,63 @@ describe("ChronicleLogger", () => {
                     };
                     ChronicleConsole.init(config);
 
-                    // Generate a new set of random parameters
-                    _randomParams = generateRandomParams();
-
-                    // Log to file
-                    var toLog =
-                        "\n\nconsole." +
-                        method +
-                        "() ------------ \n" +
-                        JSON.stringify(_randomParams);
-
-                    fs.appendFileSync("./paramlog.txt", toLog);
+                    _emptyParams = ["", {}, [], undefined, null];
                 });
 
                 afterEach(() => {
-                    const fetchMockComplete = fetchMock.done();
-                    expect(fetchMockComplete).to.equal(true);
-                    if (!fetchMockComplete) {
-                        console.error(_randomParams);
-                    }
-
-                    expect(fetchMock.lastUrl()).to.equal(SERVER);
-
-                    const request = fetchMock.lastOptions();
-                    expect(request.method).to.equal(EXPECTED_METHOD);
-                    expect(request.headers).to.deep.equal(EXPECTED_HEADERS);
-
-                    const body = JSON.parse(request.body);
-                    expect(body.app).to.equal(APP);
-                    expect(body.type).to.equal(method);
-                    expect(body.info).to.deep.equal(
-                        expectedBody(_randomParams)
-                    );
-
+                    const fetchedCalls = fetchMock.calls();
+                    expect(fetchedCalls).to.be.an("array").that.is.empty;
                     fetchMock.reset();
                 });
 
                 it("." + method + "()", () => {
-                    ChronicleConsole[method].apply(this, _randomParams);
+                    ChronicleConsole[method].apply(this, _emptyParams);
+                });
+            });
+        });
+    });
+    describe("Logs Data to Server", () => {
+        TEST_DATA.forEach(testSet => {
+            BASIC_CONSOLE_METHODS.forEach(method => {
+                describe(testSet.name + "  ." + method + "()", () => {
+                    beforeEach(() => {
+                        let config = {
+                            server: SERVER,
+                            app: APP,
+                            clientInfo: {}
+                        };
+                        ChronicleConsole.init(config);
+                    });
+
+                    afterEach(() => {
+                        const fetchedCalls = fetchMock.calls();
+                        expect(fetchedCalls, "Mocked fetch failed.").to.be.an(
+                            "array"
+                        ).that.is.not.empty;
+
+                        if (fetchedCalls.length > 0) {
+                            expect(fetchMock.lastUrl()).to.equal(SERVER);
+
+                            const request = fetchMock.lastOptions();
+                            expect(request.method).to.equal(EXPECTED_METHOD);
+                            expect(request.headers).to.deep.equal(
+                                EXPECTED_HEADERS
+                            );
+
+                            const body = JSON.parse(request.body);
+                            expect(body.app).to.equal(APP);
+                            expect(body.type).to.equal(method);
+                            expect(body.info).to.deep.equal(
+                                generateExpectedFetchBody(testSet.params)
+                            );
+                        }
+
+                        fetchMock.reset();
+                    });
+
+                    it("sends log to server", () => {
+                        ChronicleConsole[method].apply(this, testSet.params);
+                    });
                 });
             });
         });
