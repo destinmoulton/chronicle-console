@@ -35,7 +35,7 @@ const OPTION_STATES = [
 // Monitor all POSTs
 fetchMock.post(SERVER, 200);
 
-describe("ChronicleLogger - Logs Data", () => {
+describe("ChronicleLogger Basic Methods", () => {
     OPTION_STATES.forEach(optionState => {
         describe(optionState.title, () => {
             TEST_DATA.forEach(testSet => {
