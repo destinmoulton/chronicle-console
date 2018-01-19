@@ -44,6 +44,10 @@ concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
 
+console-mock@^1.0.24:
+  version "1.0.24"
+  resolved "https://registry.yarnpkg.com/console-mock/-/console-mock-1.0.24.tgz#0197d914775a674745d87f35a034389d65eb0224"
+
 debug@3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
