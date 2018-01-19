@@ -24,7 +24,7 @@
     };
 
     var _fetch = null;
-    var _console = console;
+    var _console = null;
 
     var _timers = Object.create(null);
     var _groupStack = [];
@@ -35,6 +35,8 @@
         _options.clientInfo = config.clientInfo || null;
         _options.alsoConsole = config.toConsole || false;
         _options.alsoConsoleNonStandard = config.nonStandardConsole || false;
+
+        _console = config.globalConsole || console;
 
         if (fetch !== undefined) {
             _fetch = fetch;
