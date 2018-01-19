@@ -22,90 +22,96 @@ const EXPECTED_METHOD = "post";
 
 const BASIC_CONSOLE_METHODS = ["error", "info", "log", "table", "warn"];
 
+const OPTION_STATES = [
+    {
+        title: "Console and Server",
+        expectConsole: true
+    },
+    {
+        title: "Just Server",
+        expectConsole: false
+    }
+];
 // Monitor all POSTs
 fetchMock.post(SERVER, 200);
 
-describe("ChronicleLogger", () => {
-    describe("Logs to Console, Does Not Log to Server", () => {
-        BASIC_CONSOLE_METHODS.forEach(method => {
-            describe("Empty Data", () => {
-                let _emptyParams = [];
+describe("ChronicleLogger - Logs Data", () => {
+    OPTION_STATES.forEach(optionState => {
+        describe(optionState.title, () => {
+            TEST_DATA.forEach(testSet => {
+                BASIC_CONSOLE_METHODS.forEach(method => {
+                    describe(testSet.name + "  ." + method + "()", () => {
+                        beforeEach(() => {
+                            let config = {
+                                server: SERVER,
+                                app: APP,
+                                clientInfo: {}
+                            };
 
-                beforeEach(() => {
-                    consoleMock.enabled(false);
-                    consoleMock.historyClear();
-                    let config = {
-                        server: SERVER,
-                        app: APP,
-                        clientInfo: {},
-                        toConsole: true,
-                        globalConsole: consoleMock.create()
-                    };
-                    ChronicleConsole.init(config);
+                            if (optionState.expectConsole) {
+                                consoleMock.enabled(false);
+                                consoleMock.historyClear();
+                                config["toConsole"] = true;
+                                config["globalConsole"] = consoleMock.create();
+                            }
+                            ChronicleConsole.init(config);
+                        });
 
-                    _emptyParams = ["", {}, [], undefined, null];
-                });
+                        afterEach(() => {
+                            const fetchedCalls = fetchMock.calls();
 
-                afterEach(() => {
-                    const fetchedCalls = fetchMock.calls();
-                    expect(fetchedCalls).to.be.an("array").that.is.empty;
-                    fetchMock.reset();
+                            if (testSet.shouldLogToServer) {
+                                expect(
+                                    fetchedCalls,
+                                    "Mocked fetch failed."
+                                ).to.be.an("array").that.is.not.empty;
+                            } else {
+                                expect(
+                                    fetchedCalls,
+                                    "Mock fetch ran when it shouldn't."
+                                ).to.be.an("array").that.is.empty;
+                            }
 
-                    const history = consoleMock.history();
-                    expect(history)
-                        .to.be.an("array")
-                        .of.length(1);
+                            if (testSet.shouldLogToServer) {
+                                expect(fetchMock.lastUrl()).to.equal(SERVER);
 
-                    expect(history[0].method).to.be.equal(method);
-                });
+                                const request = fetchMock.lastOptions();
+                                expect(request.method).to.equal(
+                                    EXPECTED_METHOD
+                                );
+                                expect(request.headers).to.deep.equal(
+                                    EXPECTED_HEADERS
+                                );
 
-                it("." + method + "()", () => {
-                    ChronicleConsole[method].apply(this, _emptyParams);
-                });
-            });
-        });
-    });
-    describe("Logs Data to Server", () => {
-        TEST_DATA.forEach(testSet => {
-            BASIC_CONSOLE_METHODS.forEach(method => {
-                describe(testSet.name + "  ." + method + "()", () => {
-                    beforeEach(() => {
-                        let config = {
-                            server: SERVER,
-                            app: APP,
-                            clientInfo: {}
-                        };
-                        ChronicleConsole.init(config);
-                    });
+                                const body = JSON.parse(request.body);
+                                expect(body.app).to.equal(APP);
+                                expect(body.type).to.equal(method);
+                                expect(body.info).to.deep.equal(
+                                    generateExpectedFetchBody(testSet.params)
+                                );
+                            }
 
-                    afterEach(() => {
-                        const fetchedCalls = fetchMock.calls();
-                        expect(fetchedCalls, "Mocked fetch failed.").to.be.an(
-                            "array"
-                        ).that.is.not.empty;
+                            fetchMock.reset();
 
-                        if (fetchedCalls.length > 0) {
-                            expect(fetchMock.lastUrl()).to.equal(SERVER);
+                            if (optionState.expectConsole) {
+                                const history = consoleMock.history();
+                                expect(history)
+                                    .to.be.an("array")
+                                    .of.length(1);
 
-                            const request = fetchMock.lastOptions();
-                            expect(request.method).to.equal(EXPECTED_METHOD);
-                            expect(request.headers).to.deep.equal(
-                                EXPECTED_HEADERS
+                                expect(history[0].method).to.be.equal(method);
+                                expect(history[0].arguments).to.deep.equal(
+                                    testSet.params
+                                );
+                            }
+                        });
+
+                        it("." + method + "()", () => {
+                            ChronicleConsole[method].apply(
+                                this,
+                                testSet.params
                             );
-
-                            const body = JSON.parse(request.body);
-                            expect(body.app).to.equal(APP);
-                            expect(body.type).to.equal(method);
-                            expect(body.info).to.deep.equal(
-                                generateExpectedFetchBody(testSet.params)
-                            );
-                        }
-
-                        fetchMock.reset();
-                    });
-
-                    it("sends log to server", () => {
-                        ChronicleConsole[method].apply(this, testSet.params);
+                        });
                     });
                 });
             });
