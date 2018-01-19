@@ -25,11 +25,11 @@ const BASIC_CONSOLE_METHODS = ["error", "info", "log", "table", "warn"];
 const OPTION_STATES = [
     {
         title: "Console and Server",
-        expectConsole: true
+        consoleIsOn: true
     },
     {
         title: "Just Server",
-        expectConsole: false
+        consoleIsOn: false
     }
 ];
 // Monitor all POSTs
@@ -48,7 +48,7 @@ describe("ChronicleLogger - Logs Data", () => {
                                 clientInfo: {}
                             };
 
-                            if (optionState.expectConsole) {
+                            if (optionState.consoleIsOn) {
                                 consoleMock.enabled(false);
                                 consoleMock.historyClear();
                                 config["toConsole"] = true;
@@ -93,7 +93,7 @@ describe("ChronicleLogger - Logs Data", () => {
 
                             fetchMock.reset();
 
-                            if (optionState.expectConsole) {
+                            if (optionState.consoleIsOn) {
                                 const history = consoleMock.history();
                                 expect(history)
                                     .to.be.an("array")
