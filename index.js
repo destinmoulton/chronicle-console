@@ -34,7 +34,6 @@
         _options.appName = config.app || "";
         _options.clientInfo = config.clientInfo || null;
         _options.alsoConsole = config.toConsole || false;
-        _options.alsoConsoleNonStandard = config.nonStandardConsole || false;
 
         _console = config.globalConsole || console;
 
@@ -318,27 +317,27 @@
      * Stubs for Non-Standard console functions
      */
     function dir() {
-        if (_options.alsoConsoleNonStandard)
+        if (_options.alsoConsole && _console.dir !== undefined)
             _console.dir.apply(this, arguments);
     }
 
     function dirxml() {
-        if (_options.alsoConsoleNonStandard)
+        if (_options.alsoConsole && _console.dirxml !== undefined)
             _console.dirxml.apply(this, arguments);
     }
 
     function profile() {
-        if (_options.alsoConsoleNonStandard)
+        if (_options.alsoConsole && _console.profile !== undefined)
             _console.profile.apply(this, arguments);
     }
 
     function profileEnd() {
-        if (_options.alsoConsoleNonStandard)
+        if (_options.alsoConsole && _console.profileEnd !== undefined)
             _console.profileEnd.apply(this, arguments);
     }
 
     function timeStamp() {
-        if (_options.alsoConsoleNonStandard)
+        if (_options.alsoConsole && _console.timeStamp !== undefined)
             _console.timeStamp.apply(this, arguments);
     }
 
