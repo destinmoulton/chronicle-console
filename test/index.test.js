@@ -1,11 +1,9 @@
 const fs = require("fs");
 
 const chai = require("chai");
+const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
 const nodeFetch = require("node-fetch");
-
-// The Object we are going to test
-const ChronicleConsole = require("../index");
 
 // The test data
 const TEST_DATA = require("./lib/data");
@@ -14,8 +12,8 @@ const generateExpectedFetchBody = require("./lib/generateExpectedFetchBody");
 
 const expect = chai.expect;
 
-// Create the global fetch method
-//global.fetch = nodeFetch;
+// The Object we are going to test
+const ChronicleConsole = require("../index");
 
 const SERVER = "http://testserver.com";
 const APP = "TestApp";
@@ -28,16 +26,20 @@ const BASIC_CONSOLE_METHODS = ["error", "info", "log", "table", "warn"];
 fetchMock.post(SERVER, 200);
 
 describe("ChronicleLogger", () => {
-    describe("Does Not Log", () => {
+    describe("Logs to Console, Does Not Log to Server", () => {
         BASIC_CONSOLE_METHODS.forEach(method => {
             describe("Empty Data", () => {
                 let _emptyParams = [];
 
                 beforeEach(() => {
+                    consoleMock.enabled(false);
+                    consoleMock.historyClear();
                     let config = {
                         server: SERVER,
                         app: APP,
-                        clientInfo: {}
+                        clientInfo: {},
+                        toConsole: true,
+                        globalConsole: consoleMock.create()
                     };
                     ChronicleConsole.init(config);
 
@@ -48,6 +50,13 @@ describe("ChronicleLogger", () => {
                     const fetchedCalls = fetchMock.calls();
                     expect(fetchedCalls).to.be.an("array").that.is.empty;
                     fetchMock.reset();
+
+                    const history = consoleMock.history();
+                    expect(history)
+                        .to.be.an("array")
+                        .of.length(1);
+
+                    expect(history[0].method).to.be.equal(method);
                 });
 
                 it("." + method + "()", () => {
