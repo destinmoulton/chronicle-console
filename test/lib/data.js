@@ -2,7 +2,7 @@ const generateRandomParams = require("./generaterandom");
 
 module.exports = [
     {
-        name: "Empty data [Nothing sent to server, console IS logged]",
+        name: "Empty Data Objects [No Server, Yes Console]",
         params: ["", {}, [], undefined, null],
         shouldLogToServer: false
     },
