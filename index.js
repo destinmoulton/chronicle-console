@@ -168,7 +168,10 @@
     }
 
     function _now() {
-        if (performance.now !== undefined) {
+        if (
+            typeof performance !== "undefined" &&
+            performance.now !== undefined
+        ) {
             return performance.now();
         } else {
             return Date.now();
@@ -265,18 +268,19 @@
     function time(label) {
         if (_options.alsoConsole) _console.time(label);
 
-        if (typeof label === "string") {
-            _timers[label] = _now();
-        }
+        const timerLabel = label === undefined ? "default" : `${label}`;
+        _timers[timerLabel] = _now();
     }
 
     function timeEnd(label) {
         if (_options.alsoConsole) _console.timeEnd(label);
 
-        if (typeof label === "string" && _timers[label] !== undefined) {
-            var elapsed = (_now() - _timers[label]).toFixed(2);
-            var data = `${label}: ${elapsed}ms`;
-            delete _timers[label];
+        const timerLabel = label === undefined ? "default" : `${label}`;
+
+        if (_timers[timerLabel] !== undefined) {
+            var elapsed = (_now() - _timers[timerLabel]).toFixed(2);
+            var data = [`${timerLabel}: ${elapsed}ms`];
+            delete _timers[timerLabel];
             return _logData(data, "time");
         }
     }
