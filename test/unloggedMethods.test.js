@@ -1,69 +1,16 @@
-const _ = require("lodash");
 const chai = require("chai");
 
 const expect = chai.expect;
 
+const ChronicleMockConsole = require("./lib/ChronicleMockConsole");
+
+// The object to test
 const chronicleConsole = require("../index");
 
 const SERVER = "https://apiserver.com/test/";
 const APP = "Test Unlogged Methods";
 
-const MockConsole = () => {
-    let _history = [];
-
-    function history() {
-        return _history;
-    }
-
-    function historyClear() {
-        _history = [];
-    }
-
-    function clear() {
-        _history.push({ method: "clear", arguments: _.toArray(arguments) });
-    }
-
-    function count() {
-        _history.push({ method: "count", arguments: _.toArray(arguments) });
-    }
-
-    function dir() {
-        _history.push({ method: "dir", arguments: _.toArray(arguments) });
-    }
-
-    function dirxml() {
-        _history.push({ method: "dirxml", arguments: _.toArray(arguments) });
-    }
-
-    function profile() {
-        _history.push({ method: "profile", arguments: _.toArray(arguments) });
-    }
-
-    function profileEnd() {
-        _history.push({
-            method: "profileEnd",
-            arguments: _.toArray(arguments)
-        });
-    }
-
-    function timeStamp() {
-        _history.push({ method: "timeStamp", arguments: _.toArray(arguments) });
-    }
-
-    return {
-        history,
-        historyClear,
-        clear,
-        count,
-        dir,
-        dirxml,
-        profile,
-        profileEnd,
-        timeStamp
-    };
-};
-
-const mockConsole = MockConsole();
+const mockConsole = ChronicleMockConsole();
 
 const UNLOGGED_METHODS = [
     "clear",
