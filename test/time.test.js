@@ -14,10 +14,12 @@ const EXPECTED_METHOD = "post";
 const TESTS = [
     {
         name: ".time(undefined)",
+        expectedName: "default",
         timers: [undefined]
     },
     {
         name: ".time(TestLabelOne)",
+        expectedName: "TestLabelOne",
         timers: ["TestLabelOne"]
     }
 ];
@@ -66,13 +68,13 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
 
             fetchedCalls.forEach((call, index) => {
                 const details = call[1];
-                const body = details.body;
+                const body = JSON.parse(details.body);
                 expect(call[0]).to.equal(SERVER);
                 expect(details.method).to.equal(EXPECTED_METHOD);
                 expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
                 expect(body.app).to.equal(APP);
                 expect(body.type).to.equal("time");
-                expect(body.info).to.include(test.timers[index]);
+                expect(body.info).to.include(test.expectedName);
                 expect(body.info).to.include("ms");
             });
 
