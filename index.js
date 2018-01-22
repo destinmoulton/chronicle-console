@@ -228,9 +228,9 @@
         var head = _groupStack.shift();
         if (_groupStack.length > 0) {
             // Put the finished group into the still active group
-            _groupStack[0].push(head);
+            _groupStack[0].push({ type: "group", log: head });
         } else {
-            return _logData(head, "group");
+            return _logData([{ type: "group", log: head }], "group");
         }
     }
 
