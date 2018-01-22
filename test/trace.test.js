@@ -1,0 +1,1 @@
+const chronicleLogger = require("../index");
