@@ -180,8 +180,7 @@
 
     // From https://stackoverflow.com/a/635852/470577
     function _stackTrace() {
-        var err = new Error();
-        var stackString = err.stack;
+        var stackString = new Error().stack;
         // Remove the trace lines for this and trace() call
         return stackString.split("\n").slice(2, -1);
     }
@@ -289,11 +288,13 @@
         if (_options.alsoConsole) _console.trace.apply(this, arguments);
 
         var args = _argumentsToArray(arguments);
+        var data = [];
         if (args[0]) {
-            var data = _collateArguments(args);
-            data.push(_stackTrace());
-            return _logData(data, "trace");
+            data = _collateArguments(args);
         }
+
+        data.push(_stackTrace());
+        return _logData(data, "trace");
     }
 
     function warn() {
