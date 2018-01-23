@@ -9,6 +9,9 @@ const fetchMock = require("fetch-mock");
 const expect = chai.expect;
 
 const chronicleLogger = require("../index");
+const DATA = require("./lib/groupData");
+const METHODS = DATA.METHODS;
+const TESTS = DATA.TESTS;
 
 const APP = "TEST GROUP APP";
 const SERVER = "https://servername.com";
@@ -20,46 +23,6 @@ const CONSOLE_OPTIONS = [
     {
         name: "Does NOT log to the console.",
         consoleEnabled: false
-    }
-];
-
-const METHODS = [
-    {
-        type: "log",
-        args: ["Alpha", [1, 2, 3]]
-    },
-
-    {
-        type: "info",
-        args: [{ a: "First", b: "Second" }, "Beta"]
-    },
-
-    {
-        type: "warn",
-        args: [["c", "b", "a"], { one: 1, two: 2 }]
-    },
-    {
-        type: "error",
-        args: ["ERROR: ", "SOMETHING WENT WRONG!"]
-    },
-    {
-        type: "table",
-        args: [{ a: "alpha", b: "beta" }]
-    }
-];
-
-const TESTS = [
-    {
-        title: "Flat group (depth 1).",
-        data: [METHODS]
-    },
-    {
-        title: "Nested group (depth 2).",
-        data: [METHODS.slice(2), METHODS.slice(0, 2)]
-    },
-    {
-        title: "Nested group (depth 3).",
-        data: [Methods.slice(0, 2), METHODS[2], METHODS.slice(3)]
     }
 ];
 
@@ -84,25 +47,29 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                 });
 
                 it(consoleOption.name + " - " + test.title, () => {
-                    test.data.forEach(methods => {
-                        chronicleLogger.group();
-                        methods.forEach(method => {
-                            chronicleLogger[method.type].apply(
+                    let numMethodsCalled = 0;
+                    test.sequence.forEach(method => {
+                        if (method === "group") {
+                            chronicleLogger.group();
+                        } else if (method === "groupCollapsed") {
+                            chronicleLogger.groupCollapsed();
+                        } else if (method === "groupEnd") {
+                            chronicleLogger.groupEnd();
+                        } else {
+                            chronicleLogger[method].apply(
                                 this,
-                                method.args
+                                METHODS[method]
                             );
-                        });
-                    });
+                        }
 
-                    test.data.forEach(methods => {
-                        chronicleLogger.groupEnd();
+                        numMethodsCalled++;
                     });
 
                     const history = consoleMock.history();
                     if (consoleOption.consoleEnabled) {
                         expect(history)
                             .to.be.an("array")
-                            .and.have.length(1);
+                            .and.have.length(numMethodsCalled);
                     } else {
                         expect(history)
                             .to.be.an("array")
@@ -123,7 +90,7 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                         expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
                         expect(body.app).to.equal(APP);
                         expect(body.type).to.equal("group");
-                        expect(body.info).to.be.an("array").that.is.not.empty;
+                        expect(body.info).to.deep.equal(test.expectedData);
                     });
                 });
             });
