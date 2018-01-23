@@ -26,13 +26,13 @@ const CONSOLE_OPTIONS = [
     }
 ];
 
-fetchMock.post(SERVER, "*");
 describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
     CONSOLE_OPTIONS.forEach(consoleOption => {
         TESTS.forEach(test => {
             describe("Logs trace to server", () => {
                 beforeEach(() => {
-                    fetchMock.reset();
+                    fetchMock.restore();
+                    fetchMock.post(SERVER, "*");
                     consoleMock.enabled(false);
                     consoleMock.historyClear();
                     const config = {

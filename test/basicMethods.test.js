@@ -32,8 +32,6 @@ const OPTION_STATES = [
         consoleIsOn: false
     }
 ];
-// Monitor all POSTs
-fetchMock.post(SERVER, 200);
 
 describe("ChronicleLogger Basic Methods", () => {
     OPTION_STATES.forEach(optionState => {
@@ -42,6 +40,10 @@ describe("ChronicleLogger Basic Methods", () => {
                 BASIC_CONSOLE_METHODS.forEach(method => {
                     describe(testSet.name + "  ." + method + "()", () => {
                         beforeEach(() => {
+                            // Monitor all POSTs
+                            fetchMock.restore();
+                            fetchMock.post(SERVER, 200);
+
                             let config = {
                                 server: SERVER,
                                 app: APP,
@@ -90,8 +92,6 @@ describe("ChronicleLogger Basic Methods", () => {
                                     generateExpectedFetchBody(testSet.params)
                                 );
                             }
-
-                            fetchMock.reset();
 
                             if (optionState.consoleIsOn) {
                                 const history = consoleMock.history();

@@ -24,12 +24,13 @@ const TESTS = [
     }
 ];
 
-// Monitor all POSTs
-fetchMock.post(SERVER, 200);
-
 describe("ChronicleConsole time/timeEnd Methods", () => {
     TESTS.forEach(test => {
         beforeEach(() => {
+            // Monitor all POSTs
+            fetchMock.restore();
+            fetchMock.post(SERVER, 200);
+
             consoleMock.historyClear();
             const config = {
                 server: SERVER,

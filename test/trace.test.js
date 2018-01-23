@@ -19,12 +19,12 @@ const TESTS = [
     }
 ];
 
-fetchMock.post(SERVER, "*");
 describe("ChronicleLogger .trace()", () => {
     TESTS.forEach(test => {
         describe("Logs trace to server", () => {
             beforeEach(() => {
-                fetchMock.reset();
+                fetchMock.restore();
+                fetchMock.post(SERVER, "*");
                 consoleMock.enabled(false);
                 consoleMock.historyClear();
                 const config = {
