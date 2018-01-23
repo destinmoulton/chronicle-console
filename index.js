@@ -351,6 +351,7 @@
         assert: assert,
         error: error,
         group: group,
+        groupCollapsed: groupCollapsed,
         groupEnd: groupEnd,
         info: info,
         log: log,
