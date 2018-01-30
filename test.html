@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <title>Chronicle Console Test Platform</title>
     <script src="index.js"></script>
     <script type="text/javascript">
         function startTest(){
@@ -20,30 +21,17 @@
                     overwriteGlobalConsole: true
                 }
                 ChronicleConsole.init(config);
-                console.group();
-                console.time("A");
-                console.group();
-                console.time("B");
-                setTimeout(function(){
-                    console.timeEnd("A");
-                    console.groupEnd();
-                }, 1200);
-                setTimeout(function(){
-                    console.timeEnd("B");
-                    console.groupEnd();
-                }, 2200);
                 if(type === "error"){
                     console.error(data);
                 } else {
                     console.log(data);
                 }
-                
             }
         }
     </script>
 </head>
 <body>
-    <h4>Thoth Logger test.</h4>
+    <h4>Chronicle Console Test Platform</h4>
     <fieldset>
     <legend>Configuration</legend>
         Server: <input type="text" id="input-server" size="60"/>
