@@ -361,6 +361,11 @@
 
     var publicMethods = {
         init: init,
+
+        // Special Chronicle console methods
+        action: action,
+
+        // Standard console methods
         assert: assert,
         error: error,
         group: group,
