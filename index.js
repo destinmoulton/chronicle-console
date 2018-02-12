@@ -190,6 +190,19 @@
         _groupStack.unshift([]);
     }
 
+    /**
+     * This is a method not provided by the
+     * standard/global console. This method is
+     * used for logging user actions.
+     */
+    function action() {
+        var args = _argumentsToArray(arguments);
+        if (args[0]) {
+            var data = _collateArguments(args);
+            return _logData(data, "action");
+        }
+    }
+
     function assert(assertion) {
         if (_options.alsoConsole) _console.assert.apply(this, arguments);
 
