@@ -3,8 +3,7 @@ const fs = require("fs");
 const chai = require("chai");
 const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
-let MockBrowser = require("mock-browser").mocks.MockBrowser;
-
+const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const nodeFetch = require("node-fetch");
 
 const expect = chai.expect;
