@@ -102,16 +102,16 @@
             return false;
         }
 
-        var cleanClientInfo = {};
+        var envInfo = {};
         if (_options.env.userAgent) {
-            cleanClientInfo = _collateEnvironmentInfo(_options.env);
+            envInfo = _collateEnvironmentInfo(_options.env);
         }
 
         var dataToPost = {
             app: _options.appName,
-            client: cleanClientInfo,
+            client: envInfo,
             type: type,
-            info: data
+            data: data
         };
 
         var params = {
