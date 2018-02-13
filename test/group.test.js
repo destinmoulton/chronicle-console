@@ -5,6 +5,7 @@
 const chai = require("chai");
 const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
+const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
 
@@ -35,12 +36,15 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                     fetchMock.post(SERVER, "*");
                     consoleMock.enabled(false);
                     consoleMock.historyClear();
+
+                    // Build a mock for the window.navigator
+                    global.window = new MockBrowser().getWindow();
+
                     const config = {
                         server: SERVER,
                         app: APP,
-                        clientInfo: {},
                         toConsole: consoleOption.consoleEnabled,
-                        globalConsole: consoleMock.create()
+                        consoleObject: consoleMock.create()
                     };
 
                     chronicleLogger.init(config);
