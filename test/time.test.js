@@ -42,7 +42,6 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
             const config = {
                 server: SERVER,
                 app: APP,
-                clientInfo: {},
                 toConsole: true,
                 consoleObject: consoleMock.create()
             };
