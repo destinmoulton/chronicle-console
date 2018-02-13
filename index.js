@@ -34,8 +34,9 @@
         _options.appName = config.app || "";
         _options.env = config.env || null;
         _options.alsoConsole = config.toConsole || false;
+        _options.globalize = config.globalize || true;
 
-        _console = config.globalConsole || console;
+        _console = config.consoleObject || console;
 
         if (!_options.env && typeof window.navigator === "object") {
             // Set the default to window navigator if available
@@ -48,7 +49,7 @@
             _console.error("ChronicleConsole :: No fetch() method defined.");
         }
 
-        if (config.overwriteGlobalConsole) {
+        if (_options.globalize) {
             _overwriteGlobalConsole();
         }
     }
