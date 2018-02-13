@@ -37,7 +37,7 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 app: APP,
                 clientInfo: {},
                 toConsole: true,
-                globalConsole: consoleMock.create()
+                consoleObject: consoleMock.create()
             };
 
             chronicleConsole.init(config);
