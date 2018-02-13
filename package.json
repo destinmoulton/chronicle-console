@@ -9,6 +9,7 @@
     "scripts": {
         "test": "clear && mocha",
         "test:action": "clear && mocha test/action.test.js",
+        "test:basic": "clear && mocha test/basicMethods.test.js",
         "test:group": "clear && mocha test/group.test.js",
         "test:trace": "clear && mocha test/trace.test.js",
         "test:time": "clear && mocha test/time.test.js"
