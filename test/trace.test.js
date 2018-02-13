@@ -1,8 +1,11 @@
 const chai = require("chai");
 const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
+const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
+
+const generateExpectedClient = require("./lib/generateExpectedClient");
 
 const chronicleLogger = require("../index");
 
@@ -27,6 +30,10 @@ describe("ChronicleLogger .trace()", () => {
                 fetchMock.post(SERVER, "*");
                 consoleMock.enabled(false);
                 consoleMock.historyClear();
+
+                // Build a mock for the window.navigator
+                global.window = new MockBrowser().getWindow();
+
                 const config = {
                     server: SERVER,
                     app: APP,
@@ -66,7 +73,10 @@ describe("ChronicleLogger .trace()", () => {
                     expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
                     expect(body.app).to.equal(APP);
                     expect(body.type).to.equal("trace");
-                    expect(body.info).to.be.an("array").that.is.not.empty;
+                    expect(body.data).to.be.an("array").that.is.not.empty;
+                    expect(body.client).to.deep.equal(
+                        generateExpectedClient(global.window.navigator)
+                    );
                 });
             });
         });
