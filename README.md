@@ -19,13 +19,14 @@ console.error("Error!");
 
 ### Configuration
 
-| Option        | Required | Description                                     | Default            |
-| ------------- | -------- | ----------------------------------------------- | ------------------ |
-| server        | \*       | The URL of the Chronicle Logger.                |                    |
-| app           | \*       | The name of this app.                           |                    |
-| env           |          | Environment information.                        | `window.navigator` |
-| toConsole     |          | Show messages in regular console.               | false              |
-| globalConsole |          | Override the global console. Useful for testing | `console`          |
+| Option        | Required | Description                          | Default            |
+| ------------- | -------- | ------------------------------------ | ------------------ |
+| server        | \*       | The URL of the Chronicle Logger.     |                    |
+| app           | \*       | The name of this app.                |                    |
+| env           |          | Environment information.             | `window.navigator` |
+| toConsole     |          | Show messages in regular console.    | false              |
+| globalize     |          | Overwrite the global console object. | true               |
+| globalConsole |          | A console object. Useful for testing | `console`          |
 
 ### License
 
