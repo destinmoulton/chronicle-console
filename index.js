@@ -18,7 +18,7 @@
     var _options = {
         serverURL: "",
         appName: "",
-        clientInfo: null,
+        env: null,
         alsoConsole: false,
         alsoConsoleNonStandard: false
     };
@@ -32,10 +32,15 @@
     function init(config) {
         _options.serverURL = config.server || "";
         _options.appName = config.app || "";
-        _options.clientInfo = config.clientInfo || null;
+        _options.env = config.env || null;
         _options.alsoConsole = config.toConsole || false;
 
         _console = config.globalConsole || console;
+
+        if (!_options.env && typeof window.navigator === "object") {
+            // Set the default to window navigator if available
+            _options.env = window.navigator;
+        }
 
         if (fetch !== undefined) {
             _fetch = fetch;
@@ -90,7 +95,7 @@
     }
 
     function _sendData(data, type) {
-        if (!_options.serverURL || !_options.appName || !_options.clientInfo) {
+        if (!_options.serverURL || !_options.appName || !_options.env) {
             _console.error(
                 "ChronicleConsole :: No server, app, or client info provided. Run init() first."
             );
@@ -98,8 +103,8 @@
         }
 
         var cleanClientInfo = {};
-        if (_options.clientInfo.userAgent) {
-            cleanClientInfo = _collateEnvironmentInfo(_options.clientInfo);
+        if (_options.env.userAgent) {
+            cleanClientInfo = _collateEnvironmentInfo(_options.env);
         }
 
         var dataToPost = {
