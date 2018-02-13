@@ -1,5 +1,3 @@
-const generateRandomParams = require("./generaterandom");
-
 module.exports = [
     {
         name: "Empty Data Objects [No Server, Yes Console]",
@@ -69,31 +67,6 @@ module.exports = [
             "",
             undefined
         ],
-        shouldLogToServer: true
-    },
-    {
-        name: "Random Data 1",
-        params: generateRandomParams(),
-        shouldLogToServer: true
-    },
-    {
-        name: "Random Data 2",
-        params: generateRandomParams(),
-        shouldLogToServer: true
-    },
-    {
-        name: "Random Data 3",
-        params: generateRandomParams(),
-        shouldLogToServer: true
-    },
-    {
-        name: "Random Data 4",
-        params: generateRandomParams(),
-        shouldLogToServer: true
-    },
-    {
-        name: "Random Data 5",
-        params: generateRandomParams(),
         shouldLogToServer: true
     }
 ];
