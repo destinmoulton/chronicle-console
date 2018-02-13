@@ -9,7 +9,7 @@ const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
 
-const chronicleLogger = require("../index");
+const ChronicleConsole = require("../index");
 const DATA = require("./lib/groupData");
 const METHODS = DATA.METHODS;
 const TESTS = DATA.TESTS;
@@ -47,20 +47,20 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                         consoleObject: consoleMock.create()
                     };
 
-                    chronicleLogger.init(config);
+                    ChronicleConsole.init(config);
                 });
 
                 it(consoleOption.name + " - " + test.title, () => {
                     let numMethodsCalled = 0;
                     test.sequence.forEach(method => {
                         if (method === "group") {
-                            chronicleLogger.group();
+                            ChronicleConsole.group();
                         } else if (method === "groupCollapsed") {
-                            chronicleLogger.groupCollapsed();
+                            ChronicleConsole.groupCollapsed();
                         } else if (method === "groupEnd") {
-                            chronicleLogger.groupEnd();
+                            ChronicleConsole.groupEnd();
                         } else {
-                            chronicleLogger[method].apply(
+                            ChronicleConsole[method].apply(
                                 this,
                                 METHODS[method]
                             );
