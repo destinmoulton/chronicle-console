@@ -3,6 +3,7 @@ const fs = require("fs");
 const chai = require("chai");
 const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
+const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const nodeFetch = require("node-fetch");
 
 // The test data
@@ -37,24 +38,26 @@ describe("ChronicleLogger Basic Methods", () => {
     OPTION_STATES.forEach(optionState => {
         describe(optionState.title, () => {
             TEST_DATA.forEach(testSet => {
-                BASIC_CONSOLE_METHODS.forEach(method => {
-                    describe(testSet.name + "  ." + method + "()", () => {
+                BASIC_CONSOLE_METHODS.forEach(logtype => {
+                    describe(testSet.name + "  ." + logtype + "()", () => {
                         beforeEach(() => {
                             // Monitor all POSTs
                             fetchMock.restore();
                             fetchMock.post(SERVER, 200);
 
+                            // Build a mock for the window.navigator
+                            global.window = new MockBrowser().getWindow();
+
                             let config = {
                                 server: SERVER,
-                                app: APP,
-                                clientInfo: {}
+                                app: APP
                             };
 
                             if (optionState.consoleIsOn) {
                                 consoleMock.enabled(false);
                                 consoleMock.historyClear();
                                 config["toConsole"] = true;
-                                config["globalConsole"] = consoleMock.create();
+                                config["consoleObject"] = consoleMock.create();
                             }
                             ChronicleConsole.init(config);
                         });
@@ -85,29 +88,33 @@ describe("ChronicleLogger Basic Methods", () => {
                                     EXPECTED_HEADERS
                                 );
 
-                                const body = JSON.parse(request.body);
-                                expect(body.app).to.equal(APP);
-                                expect(body.type).to.equal(method);
-                                expect(body.info).to.deep.equal(
-                                    generateExpectedFetchBody(testSet.params)
+                                const parsedBody = JSON.parse(request.body);
+                                const expectedFetchBody = generateExpectedFetchBody(
+                                    APP,
+                                    logtype,
+                                    global.window.navigator,
+                                    testSet.params
+                                );
+                                expect(parsedBody).to.deep.equal(
+                                    expectedFetchBody
                                 );
                             }
 
                             if (optionState.consoleIsOn) {
                                 const history = consoleMock.history();
-                                expect(history)
+                                expect(history, "Console history is incorrect!")
                                     .to.be.an("array")
                                     .of.length(1);
 
-                                expect(history[0].method).to.be.equal(method);
+                                expect(history[0].method).to.be.equal(logtype);
                                 expect(history[0].arguments).to.deep.equal(
                                     testSet.params
                                 );
                             }
                         });
 
-                        it("." + method + "()", () => {
-                            ChronicleConsole[method].apply(
+                        it("." + logtype + "()", () => {
+                            ChronicleConsole[logtype].apply(
                                 this,
                                 testSet.params
                             );
