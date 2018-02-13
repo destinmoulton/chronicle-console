@@ -16,6 +16,11 @@ const APP = "TestApp";
 const EXPECTED_HEADERS = { "Content-Type": "text/plain" };
 const EXPECTED_METHOD = "post";
 
+const EXPECTED_BODIES = [
+    '{"app":"TestApp","client":{},"type":"action","info":["login","Logindetails"]}',
+    '{"app":"TestApp","client":{},"type":"action","info":["click","clickTarget"]}'
+];
+
 describe("console.action() ", () => {
     beforeEach(() => {
         // Monitor all POSTs
@@ -25,17 +30,34 @@ describe("console.action() ", () => {
         consoleMock.historyClear();
 
         const config = {
-            serverURL: SERVER,
-            appName: APP,
+            server: SERVER,
+            app: APP,
             clientInfo: {},
-            toConsole: true, // enable the console, but nothing should be output to console
-            fetch: nodeFetch
+            toConsole: true, // Regular console is enabled, though nothing should be added
+            globalConsole: consoleMock.create()
         };
         ChronicleConsole.init(config);
     });
 
     it("logs to the server NOT to the client console", () => {
-        console.action("login", "Logindetails");
-        console.action("click", "clickTarget");
+        ChronicleConsole.action("login", "Logindetails");
+        ChronicleConsole.action("click", "clickTarget");
+
+        const history = consoleMock.history();
+        expect(history)
+            .to.be.an("array")
+            .and.have.length(0);
+
+        const fetchedCalls = fetchMock.calls();
+        expect(fetchedCalls)
+            .to.be.an("array")
+            .of.length(2);
+
+        fetchedCalls.forEach((call, idx) => {
+            const pkg = call[1];
+            expect(pkg.method).to.equal(EXPECTED_METHOD);
+            expect(pkg.headers).to.deep.equal(EXPECTED_HEADERS);
+            expect(pkg.body).to.equal(EXPECTED_BODIES[idx]);
+        });
     });
 });
