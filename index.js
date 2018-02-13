@@ -49,18 +49,19 @@
     }
 
     function _collateEnvironmentInfo(info) {
-        var browserInfo = {};
-        browserInfo.appCodeName = info.appCodeName || "";
-        browserInfo.appName = info.appName || "";
-        browserInfo.appVersion = info.appVersion || "";
-        browserInfo.cookieEnabled = info.cookieEnabled || "";
-        browserInfo.geolocation = info.geolocation || "";
-        browserInfo.language = info.language || "";
-        browserInfo.oscpu = info.oscpu || "";
-        browserInfo.platform = info.platform || "";
-        browserInfo.product = info.product || "";
-        browserInfo.userAgent = info.userAgent || "";
-        return browserInfo;
+        var env = {};
+        env.appCodeName = info.appCodeName || "";
+        env.appName = info.appName || "";
+        env.appVersion = info.appVersion || "";
+        env.cookieEnabled = info.cookieEnabled || "";
+        env.geolocation = info.geolocation || "";
+        env.language = info.language || "";
+        env.oscpu = info.oscpu || "";
+        env.platform = info.platform || "";
+        env.product = info.product || "";
+        env.productSub = info.productSub || "";
+        env.userAgent = info.userAgent || "";
+        return env;
     }
 
     function _logData(data, type) {
