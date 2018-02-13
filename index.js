@@ -38,7 +38,11 @@
 
         _console = config.consoleObject || console;
 
-        if (!_options.env && typeof window.navigator === "object") {
+        const windowIsAvailable =
+            typeof window !== "undefined" &&
+            typeof window.navigator === "object";
+
+        if (!_options.env && windowIsAvailable) {
             // Set the default to window navigator if available
             _options.env = window.navigator;
         }
