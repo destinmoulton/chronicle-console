@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
-const chronicleConsole = require("../index");
+const ChronicleConsole = require("../index");
 
 const SERVER = "http://serverapi.org/";
 const APP = "Time Test";
@@ -47,12 +47,12 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 consoleObject: consoleMock.create()
             };
 
-            chronicleConsole.init(config);
+            ChronicleConsole.init(config);
         });
         it(test.name, () => {
             test.timers.forEach(timer => {
-                chronicleConsole.time(timer);
-                chronicleConsole.timeEnd(timer);
+                ChronicleConsole.time(timer);
+                ChronicleConsole.timeEnd(timer);
             });
 
             const history = consoleMock.history();
