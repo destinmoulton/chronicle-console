@@ -1,4 +1,5 @@
 const chai = require("chai");
+const fetchMock = require("fetch-mock");
 
 const expect = chai.expect;
 
@@ -27,13 +28,15 @@ describe("Unlogged Console Methods", () => {
     UNLOGGED_METHODS.forEach(method => {
         describe("console." + method, () => {
             beforeEach(() => {
+                // Monitor all POSTs
+                fetchMock.restore();
+                fetchMock.post(SERVER, 200);
                 mockConsole.historyClear();
                 const config = {
                     server: SERVER,
                     app: APP,
-                    clientInfo: {},
                     toConsole: true,
-                    globalConsole: mockConsole
+                    consoleObject: mockConsole
                 };
 
                 chronicleConsole.init(config);
@@ -48,6 +51,12 @@ describe("Unlogged Console Methods", () => {
                     .to.be.an("array")
                     .and.have.length(1);
                 expect(history[0].method).to.be.equal(method);
+
+                const fetchedCalls = fetchMock.calls();
+
+                expect(fetchedCalls, "Mocked fetch failed.")
+                    .to.be.an("array")
+                    .that.is.length(0);
             });
         });
     });
