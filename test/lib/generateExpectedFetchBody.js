@@ -1,5 +1,7 @@
 const _ = require("lodash");
 
+const generateExpectedClient = require("./generateExpectedClient");
+
 function isParamValid(param) {
     if (param === null || param === undefined) {
         return false;
@@ -15,12 +17,7 @@ function isParamValid(param) {
     return true;
 }
 
-/**
- * Generate the expected fetch body.
- *
- * @param array params
- */
-function generateExpectedFetchBody(params) {
+function generateParamData(params) {
     let data = null;
     if (params.length > 1) {
         data = [];
@@ -34,6 +31,23 @@ function generateExpectedFetchBody(params) {
     }
 
     return data;
+}
+
+/**
+ * Generate the expected fetch body.
+ *
+ * @param array params
+ */
+function generateExpectedFetchBody(app, logtype, navigator, params) {
+    const data = generateParamData(params);
+    const client = generateExpectedClient(navigator);
+
+    return {
+        app,
+        client,
+        data,
+        type: logtype
+    };
 }
 
 module.exports = generateExpectedFetchBody;
