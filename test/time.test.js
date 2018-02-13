@@ -30,8 +30,12 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
             // Monitor all POSTs
             fetchMock.restore();
             fetchMock.post(SERVER, 200);
-
+            consoleMock.enabled(false);
             consoleMock.historyClear();
+
+            // Build a mock for the window.navigator
+            global.window = new MockBrowser().getWindow();
+
             const config = {
                 server: SERVER,
                 app: APP,
