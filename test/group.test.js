@@ -10,7 +10,7 @@ const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const expect = chai.expect;
 
 const ChronicleConsole = require("../index");
-const DATA = require("./lib/groupData");
+const DATA = require("./data/groupData");
 const METHODS = DATA.METHODS;
 const TESTS = DATA.TESTS;
 
