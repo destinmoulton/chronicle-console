@@ -1,8 +1,11 @@
 const chai = require("chai");
 const consoleMock = require("console-mock");
 const fetchMock = require("fetch-mock");
+const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
+
+const generateExpectedClient = require("./lib/generateExpectedClient");
 
 const chronicleConsole = require("../index");
 
@@ -79,8 +82,11 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
                 expect(body.app).to.equal(APP);
                 expect(body.type).to.equal("time");
-                expect(body.info).to.include(test.expectedName);
-                expect(body.info).to.include("ms");
+                expect(body.data).to.include(test.expectedName);
+                expect(body.data).to.include("ms");
+                expect(body.client).to.deep.equal(
+                    generateExpectedClient(global.window.navigator)
+                );
             });
 
             fetchMock.reset();
