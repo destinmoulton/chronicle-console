@@ -61,6 +61,8 @@
         env.product = info.product || "";
         env.productSub = info.productSub || "";
         env.userAgent = info.userAgent || "";
+        env.vendor = info.vendor || "";
+        env.vendorSub = info.vendorSub || "";
         return env;
     }
 
