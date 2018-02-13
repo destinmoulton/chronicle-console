@@ -12,7 +12,8 @@
         "test:basic": "clear && mocha test/basicMethods.test.js",
         "test:group": "clear && mocha test/group.test.js",
         "test:trace": "clear && mocha test/trace.test.js",
-        "test:time": "clear && mocha test/time.test.js"
+        "test:time": "clear && mocha test/time.test.js",
+        "test:unlogged": "clear && mocha test/unloggedMethods.test.js"
     },
     "devDependencies": {
         "chai": "^4.1.2",
