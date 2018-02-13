@@ -10,20 +10,18 @@
             var server = document.getElementById("input-server").value;
             var app = document.getElementById("input-app").value;
             var data = document.getElementById("input-data").value;
-            var type = document.getElementsByName("log-type")[0].value;
+            var logtype = document.querySelector('input[name="log-type"]:checked').value;
             
             if( server && app && data){
                 var config = {
                     server: server,
                     app: app,
-                    toConsole: false
+                    toConsole: true
                 }
                 ChronicleConsole.init(config);
-                if(type === "error"){
-                    console.error(data);
-                } else {
-                    console.log(data);
-                }
+                
+                // Call the console method selected by radio
+                console[logtype](data);
             }
         }
     </script>
@@ -39,8 +37,9 @@
     <br/>
     <fieldset>
     <legend>Log</legend>
-        <input type="radio" name="log-type" value="log" checked/> Log<br/>
         <input type="radio" name="log-type" value="error"/> Error<br/>
+        <input type="radio" name="log-type" value="log" checked/> Log<br/>
+        <input type="radio" name="log-type" value="warn"/> Warn<br/>
         <br/>
         <textarea id="input-data" rows="4" cols="60" placeholder="Log message here..."></textarea>
         <br/>
