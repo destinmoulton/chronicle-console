@@ -48,7 +48,7 @@
         }
     }
 
-    function _collateBrowserInfo(info) {
+    function _collateEnvironmentInfo(info) {
         var browserInfo = {};
         browserInfo.appCodeName = info.appCodeName || "";
         browserInfo.appName = info.appName || "";
@@ -56,10 +56,10 @@
         browserInfo.cookieEnabled = info.cookieEnabled || "";
         browserInfo.geolocation = info.geolocation || "";
         browserInfo.language = info.language || "";
+        browserInfo.oscpu = info.oscpu || "";
         browserInfo.platform = info.platform || "";
         browserInfo.product = info.product || "";
         browserInfo.userAgent = info.userAgent || "";
-        browserInfo.oscpu = info.oscpu || "";
         return browserInfo;
     }
 
@@ -96,7 +96,7 @@
 
         var cleanClientInfo = {};
         if (_options.clientInfo.userAgent) {
-            cleanClientInfo = _collateBrowserInfo(_options.clientInfo);
+            cleanClientInfo = _collateEnvironmentInfo(_options.clientInfo);
         }
 
         var dataToPost = {
