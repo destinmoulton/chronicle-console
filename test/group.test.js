@@ -9,6 +9,8 @@ const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
 
+const generateExpectedClient = require("./lib/generateExpectedClient");
+
 const ChronicleConsole = require("../index");
 const DATA = require("./data/groupData");
 const METHODS = DATA.METHODS;
@@ -94,7 +96,10 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                         expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
                         expect(body.app).to.equal(APP);
                         expect(body.type).to.equal("group");
-                        expect(body.info).to.deep.equal(test.expectedData);
+                        expect(body.data).to.deep.equal(test.expectedData);
+                        expect(body.client).to.deep.equal(
+                            generateExpectedClient(global.window.navigator)
+                        );
                     });
                 });
             });
