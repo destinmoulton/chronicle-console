@@ -7,7 +7,7 @@ const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const nodeFetch = require("node-fetch");
 
 // The test data
-const TEST_DATA = require("./lib/data");
+const TEST_DATA = require("./data/data");
 
 const generateExpectedFetchBody = require("./lib/generateExpectedFetchBody");
 
