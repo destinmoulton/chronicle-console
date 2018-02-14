@@ -6,19 +6,19 @@
  */
 const generateExpectedClient = navigator => {
     var client = {};
-    client.appCodeName = navigator.appCodeName || "";
-    client.appName = navigator.appName || "";
-    client.appVersion = navigator.appVersion || "";
-    client.cookieEnabled = navigator.cookieEnabled || "";
-    client.geolocation = navigator.geolocation || "";
-    client.language = navigator.language || "";
-    client.oscpu = navigator.oscpu || "";
-    client.platform = navigator.platform || "";
-    client.product = navigator.product || "";
-    client.productSub = navigator.productSub || "";
-    client.userAgent = navigator.userAgent || "";
-    client.vendor = navigator.vendor || "";
-    client.vendorSub = navigator.vendorSub || "";
+    client.appCodeName = navigator.appCodeName || null;
+    client.appName = navigator.appName || null;
+    client.appVersion = navigator.appVersion || null;
+    client.cookieEnabled = navigator.cookieEnabled || null;
+    client.geolocation = navigator.geolocation || null;
+    client.language = navigator.language || null;
+    client.oscpu = navigator.oscpu || null;
+    client.platform = navigator.platform || null;
+    client.product = navigator.product || null;
+    client.productSub = navigator.productSub || null;
+    client.userAgent = navigator.userAgent || null;
+    client.vendor = navigator.vendor || null;
+    client.vendorSub = navigator.vendorSub || null;
 
     return client;
 };
