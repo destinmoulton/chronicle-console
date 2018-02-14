@@ -13,7 +13,9 @@
             Server: <input type="text" id="input-server" size="60"/>
             <br/>
             App Test Name: <input type="text" id="input-app" size="60"/>
+            <br/>
             <button id="start-test" onClick="startTest()">Initialize</button>
+            <button onClick="clearLocalStorage()">Clear Local Storage</button>
         </fieldset>
     <hr>
     <div style="display:none" id="navbar">
@@ -22,6 +24,12 @@
         <button onClick="mockChangeView('pricing')">Pricing</button>
         <button onClick="mockChangeView('contact')">Contact</button>
         <hr>
+        <button onClick="login()" id="button-login">Login</button>
+    </div>
+    <div style="display:none" id="adminbar">    
+        <button onClick="logout()" >Logout</button>
+        <hr>
+        
     </div>
     <script type="text/javascript">
         let TEST_DATA = {
@@ -47,14 +55,19 @@
                 });
 
             if(localStorage.getItem("server")){
-                $("#input-server").value(localStorage.getItem("server"));
+                $("#input-server").val(localStorage.getItem("server"));
             }
 
             if(localStorage.getItem("app")){
-                $("#input-app").value(localStorage.getItem("app"));
+                $("#input-app").val(localStorage.getItem("app"));
             }
 
         });
+
+        function clearLocalStorage(){
+            localStorage.removeItem("server");
+            localStorage.removeItem("app");
+        }
 
         function startTest(){
             
@@ -85,10 +98,14 @@
 
         function login(){
             console.action("user:login", TEST_DATA.user);
+            $("#button-login").prop("disabled", true);
+            $("#adminbar").show();
         }
 
         function logout(){
             console.action("user:logout");
+            $("#button-login").prop("disabled", false);
+            $("#adminbar").hide();
         }
 
     </script>
