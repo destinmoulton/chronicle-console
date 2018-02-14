@@ -60,19 +60,19 @@
 
     function _collateEnvironmentInfo(info) {
         var env = {};
-        env.appCodeName = info.appCodeName || "";
-        env.appName = info.appName || "";
-        env.appVersion = info.appVersion || "";
-        env.cookieEnabled = info.cookieEnabled || "";
-        env.geolocation = info.geolocation || "";
-        env.language = info.language || "";
-        env.oscpu = info.oscpu || "";
-        env.platform = info.platform || "";
-        env.product = info.product || "";
-        env.productSub = info.productSub || "";
-        env.userAgent = info.userAgent || "";
-        env.vendor = info.vendor || "";
-        env.vendorSub = info.vendorSub || "";
+        env.appCodeName = info.appCodeName || null;
+        env.appName = info.appName || null;
+        env.appVersion = info.appVersion || null;
+        env.cookieEnabled = info.cookieEnabled || null;
+        env.geolocation = info.geolocation || null;
+        env.language = info.language || null;
+        env.oscpu = info.oscpu || null;
+        env.platform = info.platform || null;
+        env.product = info.product || null;
+        env.productSub = info.productSub || null;
+        env.userAgent = info.userAgent || null;
+        env.vendor = info.vendor || null;
+        env.vendorSub = info.vendorSub || null;
         return env;
     }
 
