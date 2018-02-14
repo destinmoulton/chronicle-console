@@ -7,7 +7,8 @@
 </head>
 <body>
     <h3>Chronicle Console - Actions Tester</h3>
-        <fieldset>
+        <div id="loading">Loading Data...</div>
+        <fieldset style="display:none" id="serverinfo">
             <legend>Configuration</legend>
             Server: <input type="text" id="input-server" size="60"/>
             <br/>
@@ -23,6 +24,9 @@
         <hr>
     </div>
     <script type="text/javascript">
+        let TEST_DATA = {
+            user: {}
+        };
         $(()=>{
             const rando = Math.ceil(Math.random() * 10);
 
@@ -36,8 +40,19 @@
             fetch("https://swapi.co/api/people/"+rando, params)
                 .then((res)=>res.json())
                 .then((person)=>{
-                    console.log(person);
+                    TEST_DATA.user = person;
+                    console.log("api:results", person);
+                    $("#serverinfo").show();
+                    $("#loading").hide();
                 });
+
+            if(localStorage.getItem("server")){
+                $("#input-server").value(localStorage.getItem("server"));
+            }
+
+            if(localStorage.getItem("app")){
+                $("#input-app").value(localStorage.getItem("app"));
+            }
 
         });
 
@@ -47,6 +62,9 @@
             var app = document.getElementById("input-app").value;
             
             if( server && app){
+                localStorage.setItem("server", server);
+                localStorage.setItem("app", app);
+
                 var config = {
                     server: server,
                     app: app,
@@ -54,7 +72,7 @@
                 }
                 ChronicleConsole.init(config);
 
-                console.action("user:pageload", "home");
+                console.log("test:initialized");
 
                 // Show the navbar
                 $("#navbar").show();
@@ -66,7 +84,11 @@
         }
 
         function login(){
-            console.action("user:login", {username: ""});
+            console.action("user:login", TEST_DATA.user);
+        }
+
+        function logout(){
+            console.action("user:logout");
         }
 
     </script>
