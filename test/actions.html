@@ -15,21 +15,21 @@
             <br/>
             App Test Name: <input type="text" id="input-app" size="60"/>
             <br/>
-            <button id="start-test" onClick="startTest()">Initialize</button>
-            <button onClick="clearLocalStorage()">Clear Local Storage</button>
+            <button id="button-initialize">Initialize</button>
+            <button id="button-clear-storage">Clear Local Storage</button>
         </fieldset>
     <hr>
     <div style="border: 2px solid blue; padding: 10px; margin: 10px;">
         <div style="display:none" id="navbar">
-            <button onClick="mockChangeView('home')">Home</button>
-            <button onClick="mockChangeView('about')">About</button>
-            <button onClick="mockChangeView('pricing')">Pricing</button>
-            <button onClick="mockChangeView('contact')">Contact</button>
+            <button class="button-change-view" data-val="home">Home</button>
+            <button class="button-change-view" data-val="about">About</button>
+            <button class="button-change-view" data-val="pricing">Pricing</button>
+            <button class="button-change-view" data-val="contact">Contact</button>
             <hr>
-            <button onClick="login()" id="button-login">Login</button>
+            <button id="button-login">Login</button>
         </div>
         <div style="display:none" id="adminbar">    
-            <button onClick="logout()" >Logout</button>
+            <button id="button-logout">Logout</button>
             <hr>
             <ul id="rando-buttons"></ul>
 
@@ -37,101 +37,126 @@
     </div>
     <div id="contents" style="border:2px solid black; padding: 10px; margin: 10px;"></div>
     <script type="text/javascript">
-        const HEADERS = {
-                    'Origin':'https://swapi.co',
-                    "Accept":"application/json"
-                };
+        "use strict";
+        (function($){
+            const HEADERS = {
+                        'Origin':'https://swapi.co',
+                        "Accept":"application/json"
+                    };
 
-        const URL = "https://swapi.co/api";
-        let TEST_DATA = {
-            user: {}
-        };
-        $(()=>{
-            const rando = Math.ceil(Math.random() * 10);
+            const API_URL = "https://swapi.co/api/";
+            let API_DATA = {
+                people: [],
+                planets: [],
+                species: [],
+                starships: [],
+                vehicles: [],
+            };
 
-            const params = {
-                method: "get",
-                headers: HEADERS
-            }
-            fetch(URL + "/people/"+rando, params)
-                .then((res)=>res.json())
-                .then((person)=>{
-                    TEST_DATA.user = person;
-                    console.log("api:results", person);
-                    $("#serverinfo").show();
-                    $("#loading").hide();
-                });
 
-            
-            loadRandomButtons();
-
-            if(localStorage.getItem("server")){
-                $("#input-server").val(localStorage.getItem("server"));
-            }
-
-            if(localStorage.getItem("app")){
-                $("#input-app").val(localStorage.getItem("app"));
-            }
-
-        });
-
-        function loadRandomButtons(){
-            const rando = Math.ceil(Math.random() * 4);
-
-            const ENDPOINTS = ["/vehicles/"+rando, "/species/"+rando, "/starships/"+rando,];
-
-            ENDPOINTS.forEach((uri)=>{
-                fetch(URL+uri, {headers: HEADERS})
+            //jQuery onload
+            $(()=>{
+                const params = {
+                    method: "get",
+                    headers: HEADERS
+                }
+                fetch(URL + "/people", params)
                     .then((res)=>res.json())
                     .then((data)=>{
-                        $("#rando-buttons").append("<button class='rando-button'>"+data.name+"</button>");
-                    })
-            })
-        }
+                        TEST_DATA.people = data.results;
 
-        function clearLocalStorage(){
-            localStorage.removeItem("server");
-            localStorage.removeItem("app");
-        }
+                        const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
+                        TEST_DATA.user = person;
+                        $("#serverinfo").show();
+                        $("#loading").hide();
+                    });
 
-        function startTest(){
-            
-            var server = document.getElementById("input-server").value;
-            var app = document.getElementById("input-app").value;
-            
-            if( server && app){
-                localStorage.setItem("server", server);
-                localStorage.setItem("app", app);
+                loadData();
 
-                var config = {
-                    server: server,
-                    app: app,
-                    toConsole: true
+                $("#button-initialize").on('click', ()=>initializeLogging());
+                $("#button-clear-storage").on('click', ()=>clearLocalStorage());
+                $("#button-login").on('click', ()=>login());
+                $("#button-logout").on('click', ()=>logout());
+                $(".button-change-view").on('click', (evt)=>{
+                    const $el = $(evt.target);
+                    mockChangeView($el.data('val'));
+                })
+
+                if(localStorage.getItem("server")){
+                    $("#input-server").val(localStorage.getItem("server"));
                 }
-                ChronicleConsole.init(config);
 
-                console.log("test:initialized");
+                if(localStorage.getItem("app")){
+                    $("#input-app").val(localStorage.getItem("app"));
+                }
 
-                // Show the navbar
-                $("#navbar").show();
+            });
+
+            function loadAPIData(){
+
+                const $buttonList = $("#rando-buttons");
+
+                const operations = Object.keys(API_DATA).map((uri, idx)=>{
+                    return fetch(URL + uri, {headers: HEADERS})
+                        .then((res)=>res.json())
+                        .then((data)=>{
+                            const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
+                            $buttonList.append(`<button class='rando-button' data-val=''>${randomItem.name}</button>`);
+                        })
+                })
+
+                Promise.all(operations).then(()=>{
+                    console.log("done getting random data");
+                    $('.rando-button').on('click', ()=>{
+                        console.log($(this).data('val'));
+                    });
+                });
             }
-        }
 
-        function mockChangeView(viewName){
-            console.action("user:browse", viewName);
-        }
+            function clearLocalStorage(){
+                localStorage.removeItem("server");
+                localStorage.removeItem("app");
+            }
 
-        function login(){
-            console.action("user:login", TEST_DATA.user);
-            $("#button-login").prop("disabled", true);
-            $("#adminbar").show();
-        }
+            function initializeLogging(){
+                
+                var server = document.getElementById("input-server").value;
+                var app = document.getElementById("input-app").value;
+                
+                if( server && app){
+                    localStorage.setItem("server", server);
+                    localStorage.setItem("app", app);
 
-        function logout(){
-            console.action("user:logout");
-            $("#button-login").prop("disabled", false);
-            $("#adminbar").hide();
-        }
+                    var config = {
+                        server: server,
+                        app: app,
+                        toConsole: true
+                    }
+                    ChronicleConsole.init(config);
+
+                    console.log("test:initialized");
+
+                    // Show the navbar
+                    $("#navbar").show();
+                }
+            }
+
+            function mockChangeView(viewName){
+                console.action("user:browse", viewName);
+            }
+
+            function login(){
+                console.action("user:login", TEST_DATA.user);
+                $("#button-login").prop("disabled", true);
+                $("#adminbar").show();
+            }
+
+            function logout(){
+                console.action("user:logout");
+                $("#button-login").prop("disabled", false);
+                $("#adminbar").hide();
+            }
+        })(jQuery);
 
     </script>
 </body>
