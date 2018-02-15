@@ -56,21 +56,6 @@
 
             //jQuery onload
             $(()=>{
-                const params = {
-                    method: "get",
-                    headers: HEADERS
-                }
-                fetch(URL + "/people", params)
-                    .then((res)=>res.json())
-                    .then((data)=>{
-                        TEST_DATA.people = data.results;
-
-                        const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
-                        TEST_DATA.user = person;
-                        $("#serverinfo").show();
-                        $("#loading").hide();
-                    });
-
                 loadData();
 
                 $("#button-initialize").on('click', ()=>initializeLogging());
@@ -93,24 +78,30 @@
             });
 
             function loadAPIData(){
-
-                const $buttonList = $("#rando-buttons");
-
                 const operations = Object.keys(API_DATA).map((uri, idx)=>{
-                    return fetch(URL + uri, {headers: HEADERS})
+                    return fetch(API_URL + uri, {headers: HEADERS})
                         .then((res)=>res.json())
                         .then((data)=>{
-                            const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
-                            $buttonList.append(`<button class='rando-button' data-val=''>${randomItem.name}</button>`);
+                            API_DATA[uri] = data.results;
                         })
                 })
 
                 Promise.all(operations).then(()=>{
-                    console.log("done getting random data");
-                    $('.rando-button').on('click', ()=>{
+                    $("#serverinfo").show();
+                    $("#loading").hide();
+                    console.log("done getting data");
+                    
+                });
+            }
+
+            function setupRandomButtons(){
+                const $buttonList = $("#rando-buttons");
+                const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
+                $buttonList.append(`<button class='rando-button' data-val=''>${randomItem.name}</button>`);
+
+                $('.rando-button').on('click', ()=>{
                         console.log($(this).data('val'));
                     });
-                });
             }
 
             function clearLocalStorage(){
