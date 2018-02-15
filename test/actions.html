@@ -6,6 +6,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
+
     <h3>Chronicle Console - Actions Tester</h3>
         <div id="loading">Loading Data...</div>
         <fieldset style="display:none" id="serverinfo">
@@ -18,20 +19,30 @@
             <button onClick="clearLocalStorage()">Clear Local Storage</button>
         </fieldset>
     <hr>
-    <div style="display:none" id="navbar">
-        <button onClick="mockChangeView('home')">Home</button>
-        <button onClick="mockChangeView('about')">About</button>
-        <button onClick="mockChangeView('pricing')">Pricing</button>
-        <button onClick="mockChangeView('contact')">Contact</button>
-        <hr>
-        <button onClick="login()" id="button-login">Login</button>
+    <div style="border: 2px solid blue; padding: 10px; margin: 10px;">
+        <div style="display:none" id="navbar">
+            <button onClick="mockChangeView('home')">Home</button>
+            <button onClick="mockChangeView('about')">About</button>
+            <button onClick="mockChangeView('pricing')">Pricing</button>
+            <button onClick="mockChangeView('contact')">Contact</button>
+            <hr>
+            <button onClick="login()" id="button-login">Login</button>
+        </div>
+        <div style="display:none" id="adminbar">    
+            <button onClick="logout()" >Logout</button>
+            <hr>
+            <ul id="rando-buttons"></ul>
+
+        </div>
     </div>
-    <div style="display:none" id="adminbar">    
-        <button onClick="logout()" >Logout</button>
-        <hr>
-        
-    </div>
+    <div id="contents" style="border:2px solid black; padding: 10px; margin: 10px;"></div>
     <script type="text/javascript">
+        const HEADERS = {
+                    'Origin':'https://swapi.co',
+                    "Accept":"application/json"
+                };
+
+        const URL = "https://swapi.co/api";
         let TEST_DATA = {
             user: {}
         };
@@ -40,12 +51,9 @@
 
             const params = {
                 method: "get",
-                headers: {
-                    'Origin':'https://swapi.co',
-                    "Accept":"application/json"
-                }
+                headers: HEADERS
             }
-            fetch("https://swapi.co/api/people/"+rando, params)
+            fetch(URL + "/people/"+rando, params)
                 .then((res)=>res.json())
                 .then((person)=>{
                     TEST_DATA.user = person;
@@ -53,6 +61,9 @@
                     $("#serverinfo").show();
                     $("#loading").hide();
                 });
+
+            
+            loadRandomButtons();
 
             if(localStorage.getItem("server")){
                 $("#input-server").val(localStorage.getItem("server"));
@@ -63,6 +74,20 @@
             }
 
         });
+
+        function loadRandomButtons(){
+            const rando = Math.ceil(Math.random() * 4);
+
+            const ENDPOINTS = ["/vehicles/"+rando, "/species/"+rando, "/starships/"+rando,];
+
+            ENDPOINTS.forEach((uri)=>{
+                fetch(URL+uri, {headers: HEADERS})
+                    .then((res)=>res.json())
+                    .then((data)=>{
+                        $("#rando-buttons").append("<button class='rando-button'>"+data.name+"</button>");
+                    })
+            })
+        }
 
         function clearLocalStorage(){
             localStorage.removeItem("server");
