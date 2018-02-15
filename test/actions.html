@@ -30,10 +30,8 @@
         </div>
         <div style="display:none" id="adminbar">    
             <button id="button-logout">Logout</button>
-            <hr>
-            <ul id="rando-buttons"></ul>
-
         </div>
+        <div style="display:none" id="random-button-box"></div>
     </div>
     <div id="contents" style="border:2px solid black; padding: 10px; margin: 10px;"></div>
     <script type="text/javascript">
@@ -56,7 +54,26 @@
 
             //jQuery onload
             $(()=>{
-                loadData();
+                loadAPIData();
+            });
+
+            function loadAPIData(){
+                const operations = Object.keys(API_DATA).map((uri, idx)=>{
+                    return fetch(API_URL + uri, {headers: HEADERS})
+                        .then((res)=>res.json())
+                        .then((data)=>{
+                            API_DATA[uri] = data.results;
+                        })
+                })
+
+                Promise.all(operations).then(()=>{
+                    setupFieldsAndEvents();
+                });
+            }
+
+            function setupFieldsAndEvents(){
+                $("#serverinfo").show();
+                $("#loading").hide();
 
                 $("#button-initialize").on('click', ()=>initializeLogging());
                 $("#button-clear-storage").on('click', ()=>clearLocalStorage());
@@ -75,38 +92,40 @@
                     $("#input-app").val(localStorage.getItem("app"));
                 }
 
-            });
+                generateRandomButtons();
+                
+            }
 
-            function loadAPIData(){
-                const operations = Object.keys(API_DATA).map((uri, idx)=>{
-                    return fetch(API_URL + uri, {headers: HEADERS})
-                        .then((res)=>res.json())
-                        .then((data)=>{
-                            API_DATA[uri] = data.results;
-                        })
-                })
+            function generateRandomButtons(){
+                Object.keys(API_DATA).forEach((setName)=>{
+                    const set = API_DATA[setName];
+                    let items = [];
+                    for(let i=0; i<5; i++){
+                        const randomIndex = Math.floor(Math.random()*set.length);
+                        items.push(set[randomIndex]);
 
-                Promise.all(operations).then(()=>{
-                    $("#serverinfo").show();
-                    $("#loading").hide();
-                    console.log("done getting data");
-                    
+                        // Remove this element from the possible data array
+                        // avoids duplicating data
+                        set.slice(randomIndex,1);
+                    }
+
+                    buildRandomButtons(setName, items);
                 });
             }
 
-            function setupRandomButtons(){
-                const $buttonList = $("#rando-buttons");
-                const randomItem = data.results[Math.floor(Math.random()*data.results.length)];
-                $buttonList.append(`<button class='rando-button' data-val=''>${randomItem.name}</button>`);
+            function buildRandomButtons(name, items){
+                const id = `random-buttons-${name}`;
+                const container = `<fieldset><legend>${name}</legend><ul id="${id}"></ul></fieldset>`
+                $("#random-button-box").append(container);
 
-                $('.rando-button').on('click', ()=>{
-                        console.log($(this).data('val'));
+                const $buttons = $("#"+id);
+                for(let item of items){
+                    const newEl = $(`<button>${item.name}</button>`).data("json", JSON.stringify(item)).on('click', (evt)=>{
+                        console.action("click:data", JSON.parse($(evt.target).data("json")));
                     });
-            }
 
-            function clearLocalStorage(){
-                localStorage.removeItem("server");
-                localStorage.removeItem("app");
+                    $buttons.append(newEl);
+                }
             }
 
             function initializeLogging(){
@@ -129,7 +148,13 @@
 
                     // Show the navbar
                     $("#navbar").show();
+                    $("#random-button-box").show();
                 }
+            }
+
+            function clearLocalStorage(){
+                localStorage.removeItem("server");
+                localStorage.removeItem("app");
             }
 
             function mockChangeView(viewName){
