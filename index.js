@@ -403,7 +403,11 @@
     };
 
     function _overwriteGlobalConsole() {
-        global.console = publicMethods;
+        if (typeof window !== "undefined") {
+            window.console = publicMethods;
+        } else if (typeof global !== "undefined") {
+            global.console = publicMethods;
+        }
     }
 
     return publicMethods;
