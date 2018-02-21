@@ -30,6 +30,12 @@ console.error("Error!");
 | `methodsToLog`  |          | Array of methods that are logged.<br>Note: does **not** effect `toConsole` option. | `["action","error","warn","trace"]` |
 | `customMethods` |          | Array of strings for custom logging methods.                                       | `[]`                                |
 
+<table>
+<tr>
+<td>Test</td>
+<td>Test 2</td>
+</tr>
+</table>
 ### License
 
 Chronicle Console is released under the MIT License.
