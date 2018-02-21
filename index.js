@@ -35,6 +35,8 @@
         _options.env = config.env || null;
         _options.alsoConsole = config.toConsole || true;
         _options.globalize = config.globalize || true;
+
+        // The methods that should be logged to the server
         _options.methodsToLog = config.methodsToLog || [
             "action",
             "error",
@@ -209,12 +211,20 @@
         _groupStack.unshift([]);
     }
 
+    function _shouldLog(methodName) {
+        if (_options.methodsToLog === "all") return true;
+
+        return _options.methodsToLog.indexOf(methodName) > -1 ? true : false;
+    }
+
     /**
      * This is a method not provided by the
      * standard/global console. This method is
      * used for logging user actions.
      */
     function action() {
+        if (!_shouldLog("action")) return true;
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -224,6 +234,8 @@
 
     function assert(assertion) {
         if (_options.alsoConsole) _console.assert.apply(this, arguments);
+
+        if (!_shouldLog("assert")) return true;
 
         if (!assertion) {
             var args = _argumentsToArray(arguments);
