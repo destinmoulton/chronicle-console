@@ -211,6 +211,11 @@
         _groupStack.unshift([]);
     }
 
+    /**
+     * Determine if the method should be logged.
+     *
+     * @param String methodName
+     */
     function _shouldLog(methodName) {
         if (_options.methodsToLog === "all") return true;
 
