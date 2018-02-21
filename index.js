@@ -35,6 +35,12 @@
         _options.env = config.env || null;
         _options.alsoConsole = config.toConsole || true;
         _options.globalize = config.globalize || true;
+        _options.methodsToLog = config.methodsToLog || [
+            "action",
+            "error",
+            "warn",
+            "trace"
+        ];
 
         _console = config.consoleObject || console;
 
