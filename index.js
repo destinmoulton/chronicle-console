@@ -33,7 +33,7 @@
         _options.serverURL = config.server || "";
         _options.appName = config.app || "";
         _options.env = config.env || null;
-        _options.alsoConsole = config.toConsole || false;
+        _options.alsoConsole = config.toConsole || true;
         _options.globalize = config.globalize || true;
 
         _console = config.consoleObject || console;
