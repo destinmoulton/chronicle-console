@@ -32,9 +32,9 @@
     function init(config) {
         _options.serverURL = config.server || "";
         _options.appName = config.app || "";
-        _options.env = config.env || null;
-        _options.alsoConsole = config.toConsole || true;
-        _options.globalize = config.globalize || true;
+        _options.env = config.env || null; // The users environment info
+        _options.alsoConsole = config.toConsole || true; // Log to the console?
+        _options.globalize = config.globalize || true; // Overwrite the global/window console
 
         // The methods that should be logged to the server
         _options.methodsToLog = config.methodsToLog || [
@@ -44,6 +44,11 @@
             "trace"
         ];
 
+        // Custom logging methods
+        _options.customMethods = config.customMethods || [];
+        _registerCustomMethods();
+
+        // Setup the global console
         _console = config.consoleObject || console;
 
         const windowIsAvailable =
@@ -446,6 +451,20 @@
         profileEnd: profileEnd,
         timeStamp: timeStamp
     };
+
+    function _registerCustomMethods() {
+        _options.customMethods.forEach(method => {
+            if (typeof publicMethods[method] === "undefined") {
+                publicMethods[method] = function() {
+                    var args = _argumentsToArray(arguments);
+                    if (args[0]) {
+                        var data = _collateArguments(args);
+                        return _logData(data, method);
+                    }
+                };
+            }
+        });
+    }
 
     function _overwriteGlobalConsole() {
         if (typeof window !== "undefined") {
