@@ -246,6 +246,8 @@
     function error() {
         if (_options.alsoConsole) _console.error.apply(this, arguments);
 
+        if (!_shouldLog("error")) return true;
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -256,6 +258,8 @@
     function group() {
         if (_options.alsoConsole) _console.group.apply(this, arguments);
 
+        if (!_shouldLog("group")) return true;
+
         _addGroupToStack();
     }
 
@@ -263,11 +267,15 @@
         if (_options.alsoConsole)
             _console.groupCollapsed.apply(this, arguments);
 
+        if (!_shouldLog("groupCollapsed")) return true;
+
         _addGroupToStack();
     }
 
     function groupEnd() {
         if (_options.alsoConsole) _console.groupEnd.apply(this, arguments);
+
+        if (!_shouldLog("group") && !_shouldLog("groupCollapsed")) return true;
 
         var head = _groupStack.shift();
         if (_groupStack.length > 0) {
@@ -281,6 +289,8 @@
     function info() {
         if (_options.alsoConsole) _console.info.apply(this, arguments);
 
+        if (!_shouldLog("info")) return true;
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -290,6 +300,8 @@
 
     function log() {
         if (_options.alsoConsole) _console.log.apply(this, arguments);
+
+        if (!_shouldLog("log")) return true;
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
@@ -301,6 +313,8 @@
     function table() {
         if (_options.alsoConsole) _console.table.apply(this, arguments);
 
+        if (!_shouldLog("table")) return true;
+
         var args = _argumentsToArray(arguments);
         if (args[0]) {
             var data = _collateArguments(args);
@@ -311,12 +325,16 @@
     function time(label) {
         if (_options.alsoConsole) _console.time(label);
 
+        if (!_shouldLog("time")) return true;
+
         const timerLabel = label === undefined ? "default" : `${label}`;
         _timers[timerLabel] = _now();
     }
 
     function timeEnd(label) {
         if (_options.alsoConsole) _console.timeEnd(label);
+
+        if (!_shouldLog("time")) return true;
 
         const timerLabel = label === undefined ? "default" : `${label}`;
 
@@ -331,6 +349,8 @@
     function trace() {
         if (_options.alsoConsole) _console.trace.apply(this, arguments);
 
+        if (!_shouldLog("trace")) return true;
+
         var args = _argumentsToArray(arguments);
         var data = [];
         if (args[0]) {
@@ -343,6 +363,8 @@
 
     function warn() {
         if (_options.alsoConsole) _console.warn.apply(this, arguments);
+
+        if (!_shouldLog("warn")) return true;
 
         var args = _argumentsToArray(arguments);
         if (args[0]) {
