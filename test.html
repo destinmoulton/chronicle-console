@@ -12,11 +12,13 @@
             var data = document.getElementById("input-data").value;
             var logtype = document.querySelector('input[name="log-type"]:checked').value;
             
+            
             if( server && app && data){
                 var config = {
                     server: server,
                     app: app,
-                    toConsole: true
+                    toConsole: true,
+                    customMethods: ['nav', 'view']
                 }
                 ChronicleConsole.init(config);
                 
