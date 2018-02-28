@@ -17,6 +17,10 @@ console.log("message");
 console.error("Error!");
 ```
 
+### Collected Data
+
+Along with the data (strings, numbers, arrays, or objects), a stack trace is taken and logged when each enabled method is called.
+
 ### Configuration
 
 | Option          | Required | Description                                                                  | Default                             |
