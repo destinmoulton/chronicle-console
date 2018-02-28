@@ -125,11 +125,14 @@
             envInfo = _collateEnvironmentInfo(_options.env);
         }
 
+        var trace = _stackTrace(4);
+
         var dataToPost = {
             app: _options.appName,
             client: envInfo,
             type: type,
-            data: data
+            data: data,
+            trace: trace
         };
 
         var params = {
@@ -205,10 +208,12 @@
     }
 
     // From https://stackoverflow.com/a/635852/470577
-    function _stackTrace() {
+    function _stackTrace(depth) {
         var stackString = new Error().stack;
         // Remove the trace lines for this and trace() call
-        return stackString.split("\n").slice(2, -1);
+        // from depth to -1 (the split adds an extra empty element)
+        var trace = stackString.split("\n").slice(depth, -1);
+        return trace;
     }
 
     function _addGroupToStack() {
@@ -367,7 +372,7 @@
             data = _collateArguments(args);
         }
 
-        data.push(_stackTrace());
+        data.push(_stackTrace(2));
         return _logData(data, "trace");
     }
 
