@@ -40,8 +40,7 @@
         _options.methodsToLog = config.methodsToLog || [
             "action",
             "error",
-            "warn",
-            "trace"
+            "warn"
         ];
 
         // Custom logging methods
