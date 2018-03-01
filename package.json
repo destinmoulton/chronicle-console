@@ -23,5 +23,10 @@
         "mocha": "^4.1.0",
         "mock-browser": "^0.92.14",
         "node-fetch": "^1.7.3"
+    },
+    "dependencies": {
+        "gulp": "^3.9.1",
+        "gulp-uglify": "^3.0.0",
+        "pump": "^3.0.0"
     }
 }
