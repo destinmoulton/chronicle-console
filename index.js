@@ -50,7 +50,7 @@
         // Setup the global console
         _console = config.consoleObject || console;
 
-        const windowIsAvailable =
+        var windowIsAvailable =
             typeof window !== "undefined" &&
             typeof window.navigator === "object";
 
@@ -205,7 +205,7 @@
     function _collateArguments(args) {
         var data = [];
         for (var i = 0; i < args.length; i++) {
-            const arg = args[i];
+            var arg = args[i];
             if (_isArgDefined(arg) && !_isArgEmpty(arg)) {
                 data.push(JSON.parse(JSON.stringify(arg)));
             }
@@ -363,7 +363,7 @@
 
         if (!_shouldLog("time")) return true;
 
-        const timerLabel = label === undefined ? "default" : `${label}`;
+        var timerLabel = label === undefined ? "default" : `${label}`;
         _timers[timerLabel] = _now();
     }
 
@@ -372,7 +372,7 @@
 
         if (!_shouldLog("time")) return true;
 
-        const timerLabel = label === undefined ? "default" : `${label}`;
+        var timerLabel = label === undefined ? "default" : `${label}`;
 
         if (_timers[timerLabel] !== undefined) {
             var elapsed = (_now() - _timers[timerLabel]).toFixed(2);
