@@ -72,19 +72,41 @@
 
     function _collateEnvironmentInfo(info) {
         var env = {};
+
+        // Web Browser Only Environment Info
         env.appCodeName = info.appCodeName || null;
-        env.appName = info.appName || null;
         env.appVersion = info.appVersion || null;
         env.cookieEnabled = info.cookieEnabled || null;
-        env.geolocation = info.geolocation || null;
         env.language = info.language || null;
         env.oscpu = info.oscpu || null;
         env.platform = info.platform || null;
         env.product = info.product || null;
         env.productSub = info.productSub || null;
-        env.userAgent = info.userAgent || null;
         env.vendor = info.vendor || null;
         env.vendorSub = info.vendorSub || null;
+
+        // Web Browser AND React Native
+        env.appName = info.appName || null;
+        env.userAgent = info.userAgent || null;
+
+        // React Native Only Environment Info
+        env.brand = info.brand || null;
+        env.buildNumber = info.buildNumber || null;
+        env.bundleId = info.bundleId || null;
+        env.deviceCountry = info.deviceCountry || null;
+        env.deviceId = info.deviceId || null;
+        env.deviceLocale = info.deviceLocale || null;
+        env.deviceName = info.deviceName || null;
+        env.manufacturer = info.manufacturer || null;
+        env.model = info.model || null;
+        env.systemName = info.systemName || null;
+        env.systemVersion = info.systemVersion || null;
+        env.timezone = info.timezone || null;
+        env.uniqueId = info.uniqueId || null;
+        env.version = info.version || null;
+        env.isEmulator = info.isEmulator || null;
+        env.isTablet = info.isTablet || null;
+
         return env;
     }
 
