@@ -4,7 +4,7 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "outFile": "./dist/index.js",
-        "sourceRoot": "./src/",
+        "sourceRoot": "./src/index.ts",
         "rootDir": "./src/",
         "sourceMap": true
     }
