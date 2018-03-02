@@ -5,6 +5,7 @@
 import GroupStack from "./GroupStack";
 import Helpers from "./Helpers";
 import * as Types from "./types";
+import Environment from "./Environment";
 
 export class ChronicleConsole {
     private _settings: Types.ISettings = {
@@ -18,7 +19,8 @@ export class ChronicleConsole {
     };
 
     private _console = console;
-    private _fetch: GlobalFetch;
+    private _fetch: any;
+    private _timers = Object.create(null);
 
     constructor(config) {
         this.init(config);
@@ -39,8 +41,8 @@ export class ChronicleConsole {
         ];
 
         // Custom logging methods
-        this._settings.customMethods = config.customMethods || [];
-        _registerCustomMethods();
+        //this._settings.customMethods = config.customMethods || [];
+        //_registerCustomMethods();
 
         // Setup the global console
         this._console = config.consoleObject || console;
@@ -64,7 +66,13 @@ export class ChronicleConsole {
         }
 
         if (this._settings.globalize) {
-            _overwriteGlobalConsole();
+            this._overwriteGlobalConsole();
+        }
+    }
+
+    private _overwriteGlobalConsole() {
+        if (typeof console !== "undefined") {
+            (<any>console) = this;
         }
     }
 
@@ -102,7 +110,7 @@ export class ChronicleConsole {
 
         var envInfo = {};
         if (this._settings.env.userAgent) {
-            envInfo = _collateEnvironmentInfo(this._settings.env);
+            envInfo = Environment.collate(this._settings.env);
         }
 
         var trace = this._stackTrace(4);
@@ -278,7 +286,7 @@ export class ChronicleConsole {
         if (!this._shouldLog("time")) return true;
 
         var timerLabel = label === undefined ? "default" : `${label}`;
-        _timers[timerLabel] = this._now();
+        this._timers[timerLabel] = this._now();
     }
 
     timeEnd(label) {
@@ -288,10 +296,10 @@ export class ChronicleConsole {
 
         var timerLabel = label === undefined ? "default" : `${label}`;
 
-        if (_timers[timerLabel] !== undefined) {
-            var elapsed = (this._now() - _timers[timerLabel]).toFixed(2);
+        if (this._timers[timerLabel] !== undefined) {
+            var elapsed = (this._now() - this._timers[timerLabel]).toFixed(2);
             var data = [`${timerLabel}: ${elapsed}ms`];
-            delete _timers[timerLabel];
+            delete this._timers[timerLabel];
             return this._logIt(data, "time");
         }
     }
