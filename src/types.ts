@@ -1,3 +1,16 @@
+export type TMethodsToLog = [string];
+export type TCustomMethods = [string];
+
+export interface ISettings {
+    serverURL: string;
+    appName: string;
+    env: IEnvronment | null;
+    alsoConsole: boolean;
+    globalize: boolean;
+    methodsToLog: TMethodsToLog;
+    customMethods: TCustomMethods;
+}
+
 export interface IEnvronment {
     appCodeName?: string | null;
     appVersion?: string | null;
