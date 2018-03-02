@@ -35,4 +35,21 @@ class Helpers {
 
         return false;
     }
+
+    collateArguments(args) {
+        var data = [];
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            if (this.isArgDefined(arg) && !this.isArgEmpty(arg)) {
+                data.push(JSON.parse(JSON.stringify(arg)));
+            }
+        }
+        return data;
+    }
+
+    argumentsToArray(args) {
+        return Array.prototype.slice.call(args);
+    }
 }
+
+export default new Helpers();
