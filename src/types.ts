@@ -1,5 +1,5 @@
-export type TMethodsToLog = [string];
-export type TCustomMethods = [string];
+export type TMethodsToLog = string[];
+export type TCustomMethods = string[];
 
 export interface ISettings {
     serverURL: string;
