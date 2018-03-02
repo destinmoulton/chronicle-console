@@ -4,10 +4,10 @@ export type TCustomMethods = string[];
 export interface ISettings {
     serverURL: string;
     appName: string;
-    env: IEnvronment | null;
+    env: any;
     alsoConsole: boolean;
     globalize: boolean;
-    methodsToLog: TMethodsToLog;
+    methodsToLog: TMethodsToLog | string;
     customMethods: TCustomMethods;
 }
 
