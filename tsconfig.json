@@ -3,8 +3,8 @@
         "target": "ES5",
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "./dist/index.js",
-        "sourceRoot": "./src/index.ts",
+        "outFile": "./dist/chronicleconsole.js",
+        "sourceRoot": "./src/ChronicleConsole.ts",
         "rootDir": "./src/",
         "sourceMap": true
     }
