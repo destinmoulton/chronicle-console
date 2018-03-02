@@ -41,8 +41,8 @@ export class ChronicleConsole {
         ];
 
         // Custom logging methods
-        //this._settings.customMethods = config.customMethods || [];
-        //_registerCustomMethods();
+        this._settings.customMethods = config.customMethods || [];
+        this._registerCustomMethods();
 
         // Setup the global console
         this._console = config.consoleObject || console;
@@ -74,6 +74,20 @@ export class ChronicleConsole {
         if (typeof console !== "undefined") {
             (<any>console) = this;
         }
+    }
+
+    private _registerCustomMethods() {
+        this._settings.customMethods.forEach(method => {
+            if (typeof this[method] === "undefined") {
+                this[method] = function() {
+                    var args = Helpers.argumentsToArray(arguments);
+                    if (args[0]) {
+                        var data = Helpers.collateArguments(args);
+                        return this._logData(data, method);
+                    }
+                };
+            }
+        });
     }
 
     private _logIt(data, type) {
