@@ -1,4 +1,4 @@
-export default class Helpers {
+export default class ArgHelpers {
     isArray(obj) {
         return Object.prototype.toString.call(obj) === "[object Array]";
     }
