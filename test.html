@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Chronicle Console Test Platform</title>
-    <script src="index.js"></script>
+    <script src="dist/chronicleconsole.js"></script>
     <script type="text/javascript">
         function startTest(){
             
@@ -18,9 +18,11 @@
                     server: server,
                     app: app,
                     toConsole: true,
+                    globalize: true,
                     customMethods: ['nav', 'view']
                 }
                 ChronicleConsole.init(config);
+                
                 
                 // Call the console method selected by radio
                 console[logtype](data);
