@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
-const chronicleLogger = require("../index");
+const chronicleLogger = require("../dist/chronicleconsole");
 
 const APP = "TEST TRACE APP";
 const SERVER = "https://servername.com";

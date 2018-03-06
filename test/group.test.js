@@ -11,7 +11,7 @@ const expect = chai.expect;
 
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
-const ChronicleConsole = require("../index");
+const ChronicleConsole = require("../dist/chronicleconsole");
 const DATA = require("./data/groupData");
 const METHODS = DATA.METHODS;
 const TESTS = DATA.TESTS;

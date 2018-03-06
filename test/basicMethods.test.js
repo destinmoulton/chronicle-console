@@ -14,7 +14,7 @@ const generateExpectedFetchBody = require("./lib/generateExpectedFetchBody");
 const expect = chai.expect;
 
 // The Object we are going to test
-const ChronicleConsole = require("../index");
+const ChronicleConsole = require("../dist/chronicleconsole");
 
 const SERVER = "http://testserver.com";
 const APP = "TestApp";

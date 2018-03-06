@@ -11,7 +11,7 @@ const expect = chai.expect;
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
 // The Chronicle Console we are going to test.
-const ChronicleConsole = require("../index");
+const ChronicleConsole = require("../dist/chronicleconsole");
 
 // Some constants (for configuration)
 const SERVER = "http://testserver.com";

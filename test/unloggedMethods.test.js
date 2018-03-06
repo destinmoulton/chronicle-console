@@ -6,7 +6,7 @@ const expect = chai.expect;
 const ChronicleMockConsole = require("./lib/ChronicleMockConsole");
 
 // The object to test
-const chronicleConsole = require("../index");
+const chronicleConsole = require("../dist/chronicleconsole");
 
 const SERVER = "https://apiserver.com/test/";
 const APP = "Test Unlogged Methods";
