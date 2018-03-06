@@ -1,6 +1,6 @@
 import * as Types from "./types";
 
-export default class Environment {
+export default class EnvironmentParser {
     collate(info) {
         var env: Types.IEnvronment = {};
 
