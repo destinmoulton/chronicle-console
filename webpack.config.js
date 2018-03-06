@@ -2,11 +2,12 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-    entry: "./src/ChronicleConsole.ts",
+    entry: {
+        chronicleconsole: "./src/index.ts"
+    },
     output: {
         path: path.join(__dirname, "dist/"),
-        filename: "chronicleconsole.js",
-        libraryTarget: "umd"
+        filename: "[name].js"
     },
     devtool: "source-map",
     resolve: {
@@ -15,11 +16,12 @@ module.exports = {
     },
     module: {
         rules: [
-            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
-
-            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-            { enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
+            // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
+            {
+                test: /\.tsx?$/,
+                loader: "ts-loader",
+                exclude: /node_modules/
+            }
         ]
     }
 };
