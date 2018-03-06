@@ -18,11 +18,15 @@ export default class ChronicleConsole {
         customMethods: []
     };
 
+    private _helpers: Helpers;
+
     private _console = console;
     private _fetch: any;
     private _timers = Object.create(null);
 
-    constructor() {}
+    constructor(argHelpers) {
+        this._helpers = argHelpers;
+    }
 
     init(config) {
         this._settings.serverURL = config.server || "";
@@ -44,6 +48,9 @@ export default class ChronicleConsole {
 
         // Setup the global console
         this._console = config.consoleObject || console;
+        if (this._settings.globalize) {
+            this._overwriteGlobalConsole();
+        }
 
         var windowIsAvailable =
             typeof window !== "undefined" &&
@@ -54,17 +61,13 @@ export default class ChronicleConsole {
             this._settings.env = window.navigator;
         }
 
-        if (fetch !== undefined) {
+        if (typeof fetch !== "undefined") {
             // Define the local fetch method
             this._fetch = fetch;
         } else {
             this._console.error(
                 "ChronicleConsole :: No fetch() method defined."
             );
-        }
-
-        if (this._settings.globalize) {
-            this._overwriteGlobalConsole();
         }
     }
 
@@ -78,9 +81,9 @@ export default class ChronicleConsole {
         this._settings.customMethods.forEach(method => {
             if (typeof this[method] === "undefined") {
                 this[method] = function() {
-                    var args = Helpers.argumentsToArray(arguments);
+                    var args = this._helpers.argumentsToArray(arguments);
                     if (args[0]) {
-                        var data = Helpers.collateArguments(args);
+                        var data = this._helpers.collateArguments(args);
                         return this._logData(data, method);
                     }
                 };
@@ -89,17 +92,19 @@ export default class ChronicleConsole {
     }
 
     private _logIt(data, type) {
-        if (Helpers.isArray(data) || data.length === 0) {
+        this._console.log("_logIt called");
+        if (this._helpers.isArray(data) || data.length === 0) {
             // Only allow arrays
             return true;
         }
 
+        this._console.log("_logIt between");
         if (data.length === 1) {
             // Don't log an array if there is only one
             // piece of data
             data = data[0];
         }
-
+        this._console.log("_logIt right before groupstack check");
         if (GroupStack.isEmpty()) {
             return this._sendData(data, type);
         }
@@ -109,6 +114,7 @@ export default class ChronicleConsole {
     }
 
     private _sendData(data, type) {
+        this._console.log("_sendData called");
         if (
             !this._settings.serverURL ||
             !this._settings.appName ||
@@ -181,9 +187,9 @@ export default class ChronicleConsole {
     action() {
         if (!this._shouldLog("action")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "action");
         }
     }
@@ -195,9 +201,9 @@ export default class ChronicleConsole {
         if (!this._shouldLog("assert")) return true;
 
         if (!assertion) {
-            var args = Helpers.argumentsToArray(arguments);
+            var args = this._helpers.argumentsToArray(arguments);
             return this._logIt(
-                Helpers.collateArguments(args.slice(1)),
+                this._helpers.collateArguments(args.slice(1)),
                 "assert"
             );
         }
@@ -209,9 +215,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("error")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "error");
         }
     }
@@ -256,9 +262,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("info")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "info");
         }
     }
@@ -269,9 +275,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("log")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "log");
         }
     }
@@ -282,9 +288,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("table")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "table");
         }
     }
@@ -319,10 +325,10 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("trace")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         var data = [];
         if (args[0]) {
-            data = Helpers.collateArguments(args);
+            data = this._helpers.collateArguments(args);
         }
 
         data.push(this._stackTrace(2));
@@ -335,9 +341,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("warn")) return true;
 
-        var args = Helpers.argumentsToArray(arguments);
+        var args = this._helpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = Helpers.collateArguments(args);
+            var data = this._helpers.collateArguments(args);
             return this._logIt(data, "warn");
         }
     }

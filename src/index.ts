@@ -1,4 +1,5 @@
 import ChronicleConsole from "./ChronicleConsole";
+import Helpers from "./Helpers";
 /// <reference types="requirejs" />
 /// <reference types="node" />
 
@@ -8,7 +9,7 @@ import ChronicleConsole from "./ChronicleConsole";
 (function(global, factory) {
     var appName = "ChronicleConsole";
     if (typeof window === "object") {
-        window[appName] = new ChronicleConsole();
+        window[appName] = factory();
     } else if (typeof exports === "object" && typeof module === "object") {
         module.exports = factory();
     } else if (typeof define === "function" && define.amd) {
@@ -19,5 +20,6 @@ import ChronicleConsole from "./ChronicleConsole";
         global[appName] = factory();
     }
 })(this, function() {
-    return new ChronicleConsole();
+    const argHelpers = new Helpers();
+    return new ChronicleConsole(argHelpers);
 });

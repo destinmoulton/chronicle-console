@@ -1,4 +1,4 @@
-class Helpers {
+export default class Helpers {
     isArray(obj) {
         return Object.prototype.toString.call(obj) === "[object Array]";
     }
@@ -51,5 +51,3 @@ class Helpers {
         return Array.prototype.slice.call(args);
     }
 }
-
-export default new Helpers();
