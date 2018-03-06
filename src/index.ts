@@ -1,4 +1,5 @@
 import ChronicleConsole from "./ChronicleConsole";
+import Environment from "./Environment";
 import Helpers from "./Helpers";
 /// <reference types="requirejs" />
 /// <reference types="node" />
@@ -21,5 +22,6 @@ import Helpers from "./Helpers";
     }
 })(this, function() {
     const argHelpers = new Helpers();
-    return new ChronicleConsole(argHelpers);
+    const environmentParser = new Environment();
+    return new ChronicleConsole(argHelpers, environmentParser);
 });

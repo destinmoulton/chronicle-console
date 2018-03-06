@@ -19,13 +19,15 @@ export default class ChronicleConsole {
     };
 
     private _helpers: Helpers;
+    private _environmentParser: Environment;
 
     private _console = console;
     private _fetch: any;
     private _timers = Object.create(null);
 
-    constructor(argHelpers) {
+    constructor(argHelpers, environmentParser) {
         this._helpers = argHelpers;
+        this._environmentParser = environmentParser;
     }
 
     init(config) {
@@ -126,7 +128,7 @@ export default class ChronicleConsole {
             return false;
         }
 
-        var envInfo = Environment.collate(this._settings.env);
+        var envInfo = this._environmentParser.collate(this._settings.env);
 
         var trace = this._stackTrace(4);
 

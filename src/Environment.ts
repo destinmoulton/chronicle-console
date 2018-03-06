@@ -1,6 +1,6 @@
 import * as Types from "./types";
 
-class Environment {
+export default class Environment {
     collate(info) {
         var env: Types.IEnvronment = {};
 
@@ -63,5 +63,3 @@ class Environment {
         return env;
     }
 }
-
-export default new Environment();
