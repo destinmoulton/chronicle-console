@@ -1,134 +1,463 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/index.ts");
-/******/ })
-/************************************************************************/
-/******/ ({
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.ChronicleConsole = factory());
+}(this, (function () { 'use strict';
 
-/***/ "./src/ArgHelpers.ts":
-/*!***************************!*\
-  !*** ./src/ArgHelpers.ts ***!
-  \***************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+var Chronicle = (function () {
+    function Chronicle(argHelpers, environmentParser, groupStack) {
+        this._settings = {
+            serverURL: "",
+            appName: "",
+            env: null,
+            alsoConsole: true,
+            globalize: true,
+            methodsToLog: ["action", "error", "warn"],
+            customMethods: []
+        };
+        this._console = console;
+        this._timers = Object.create(null);
+        console.log("ChronicleConsole :: constructor() RUNNING");
+        if (typeof window !== "undefined") {
+            this._global = window;
+        }
+        else if (typeof global !== "undefined") {
+            this._global = global;
+        }
+        else {
+            console.error("ChronicleConsole :: No global defined.");
+        }
+        this._argHelpers = argHelpers;
+        this._environmentParser = environmentParser;
+        this._groupStack = groupStack;
+    }
+    Chronicle.prototype.init = function (config) {
+        this._settings.serverURL = config.server || "";
+        this._settings.appName = config.app || "";
+        this._settings.env = config.env || null;
+        if ("toConsole" in config) {
+            this._settings.alsoConsole = config.toConsole;
+        }
+        if ("globalize" in config) {
+            this._settings.globalize = config.globalize;
+        }
+        this._settings.methodsToLog = config.methodsToLog || [
+            "action",
+            "error",
+            "warn"
+        ];
+        this._settings.customMethods = config.customMethods || [];
+        this._registerCustomMethods();
+        this._console = config.consoleObject || console;
+        if (this._settings.globalize) {
+            this._overwriteGlobalConsole();
+        }
+        var navigatorIsAvailable = typeof this._global.navigator === "object";
+        if (!this._settings.env && navigatorIsAvailable) {
+            this._settings.env = this._global.navigator;
+        }
+        if (typeof this._global.fetch !== "undefined") {
+            this._fetch = this._global.fetch.bind(this._global);
+        }
+        else {
+            this._console.error("ChronicleConsole :: No fetch() method defined.");
+        }
+    };
+    Chronicle.prototype._overwriteGlobalConsole = function () {
+        if (typeof this._global.console !== "undefined") {
+            this._global.console = this;
+        }
+    };
+    Chronicle.prototype._registerCustomMethods = function () {
+        var _this = this;
+        this._settings.customMethods.forEach(function (method) {
+            if (typeof _this[method] === "undefined") {
+                _this[method] = function () {
+                    var args = this._argHelpers.argumentsToArray(arguments);
+                    if (args[0]) {
+                        var data = this._argHelpers.collateArguments(args);
+                        return this._logData(data, method);
+                    }
+                };
+            }
+        });
+    };
+    Chronicle.prototype._logIt = function (data, type) {
+        if (!this._argHelpers.isArray(data) || data.length === 0) {
+            return true;
+        }
+        if (data.length === 1) {
+            data = data[0];
+        }
+        if (this._groupStack.isEmpty()) {
+            return this._sendData(data, type);
+        }
+        this._groupStack.pushLog({ log: data, type: type });
+    };
+    Chronicle.prototype._sendData = function (data, type) {
+        var _this = this;
+        if (!this._settings.serverURL ||
+            !this._settings.appName ||
+            !this._settings.env) {
+            this._console.error("ChronicleConsole :: No server, app, or client info provided. Run init() first.");
+            return false;
+        }
+        var envInfo = this._environmentParser.collate(this._settings.env);
+        var trace = this._stackTrace(4);
+        var dataToPost = {
+            app: this._settings.appName,
+            client: envInfo,
+            type: type,
+            data: data,
+            trace: trace
+        };
+        var params = {
+            method: "post",
+            body: JSON.stringify(dataToPost),
+            headers: {
+                "Content-Type": "text/plain"
+            }
+        };
+        this._fetch(this._settings.serverURL, params).catch(function (err) {
+            return _this._console.error(err);
+        });
+        return true;
+    };
+    Chronicle.prototype._shouldLog = function (methodName) {
+        if (this._settings.methodsToLog === "all")
+            return true;
+        return this._settings.methodsToLog.indexOf(methodName) > -1
+            ? true
+            : false;
+    };
+    Chronicle.prototype._now = function () {
+        if (typeof performance !== "undefined" &&
+            performance.now !== undefined) {
+            return performance.now();
+        }
+        else {
+            return Date.now();
+        }
+    };
+    Chronicle.prototype._stackTrace = function (depth) {
+        var stackString = new Error().stack;
+        var trace = stackString.split("\n").slice(depth, -1);
+        return trace;
+    };
+    Chronicle.prototype.action = function () {
+        if (!this._shouldLog("action"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "action");
+        }
+    };
+    Chronicle.prototype.assert = function (assertion) {
+        if (this._settings.alsoConsole)
+            this._console.assert.apply(this, arguments);
+        if (!this._shouldLog("assert"))
+            return true;
+        if (!assertion) {
+            var args = this._argHelpers.argumentsToArray(arguments);
+            return this._logIt(this._argHelpers.collateArguments(args.slice(1)), "assert");
+        }
+    };
+    Chronicle.prototype.error = function () {
+        if (this._settings.alsoConsole)
+            this._console.error.apply(this, arguments);
+        if (!this._shouldLog("error"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "error");
+        }
+    };
+    Chronicle.prototype.group = function () {
+        if (this._settings.alsoConsole)
+            this._console.group.apply(this, arguments);
+        if (!this._shouldLog("group"))
+            return true;
+        this._groupStack.addGroup();
+    };
+    Chronicle.prototype.groupCollapsed = function () {
+        if (this._settings.alsoConsole)
+            this._console.groupCollapsed.apply(this, arguments);
+        if (!this._shouldLog("groupCollapsed"))
+            return true;
+        this._groupStack.addGroup();
+    };
+    Chronicle.prototype.groupEnd = function () {
+        if (this._settings.alsoConsole)
+            this._console.groupEnd.apply(this, arguments);
+        if (!this._shouldLog("group") && !this._shouldLog("groupCollapsed"))
+            return true;
+        var head = this._groupStack.removeGroup();
+        if (!this._groupStack.isEmpty()) {
+            this._groupStack.pushLog({ type: "group", log: head });
+        }
+        else {
+            return this._logIt([{ type: "group", log: head }], "group");
+        }
+    };
+    Chronicle.prototype.info = function () {
+        if (this._settings.alsoConsole)
+            this._console.info.apply(this, arguments);
+        if (!this._shouldLog("info"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "info");
+        }
+    };
+    Chronicle.prototype.log = function () {
+        if (this._settings.alsoConsole)
+            this._console.log.apply(this, arguments);
+        if (!this._shouldLog("log"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "log");
+        }
+    };
+    Chronicle.prototype.table = function () {
+        if (this._settings.alsoConsole)
+            this._console.table.apply(this, arguments);
+        if (!this._shouldLog("table"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "table");
+        }
+    };
+    Chronicle.prototype.time = function (label) {
+        if (this._settings.alsoConsole)
+            this._console.time(label);
+        if (!this._shouldLog("time"))
+            return true;
+        var timerLabel = label === undefined ? "default" : "" + label;
+        this._timers[timerLabel] = this._now();
+    };
+    Chronicle.prototype.timeEnd = function (label) {
+        if (this._settings.alsoConsole)
+            this._console.timeEnd(label);
+        if (!this._shouldLog("time"))
+            return true;
+        var timerLabel = label === undefined ? "default" : "" + label;
+        if (this._timers[timerLabel] !== undefined) {
+            var elapsed = (this._now() - this._timers[timerLabel]).toFixed(2);
+            var data = [timerLabel + ": " + elapsed + "ms"];
+            delete this._timers[timerLabel];
+            return this._logIt(data, "time");
+        }
+    };
+    Chronicle.prototype.trace = function () {
+        if (this._settings.alsoConsole)
+            this._console.trace.apply(this, arguments);
+        if (!this._shouldLog("trace"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        var data = [];
+        if (args[0]) {
+            data = this._argHelpers.collateArguments(args);
+        }
+        data.push(this._stackTrace(2));
+        return this._logIt(data, "trace");
+    };
+    Chronicle.prototype.warn = function () {
+        if (this._settings.alsoConsole)
+            this._console.warn.apply(this, arguments);
+        if (!this._shouldLog("warn"))
+            return true;
+        var args = this._argHelpers.argumentsToArray(arguments);
+        if (args[0]) {
+            var data = this._argHelpers.collateArguments(args);
+            return this._logIt(data, "warn");
+        }
+    };
+    Chronicle.prototype.clear = function () {
+        if (this._settings.alsoConsole)
+            this._console.clear();
+    };
+    Chronicle.prototype.count = function () {
+        if (this._settings.alsoConsole)
+            this._console.count.apply(this, arguments);
+    };
+    Chronicle.prototype.dir = function () {
+        if (this._settings.alsoConsole && this._console.dir !== undefined)
+            this._console.dir.apply(this, arguments);
+    };
+    Chronicle.prototype.dirxml = function () {
+        if (this._settings.alsoConsole && this._console.dirxml !== undefined)
+            this._console.dirxml.apply(this, arguments);
+    };
+    Chronicle.prototype.profile = function () {
+        if (this._settings.alsoConsole && this._console.profile !== undefined)
+            this._console.profile.apply(this, arguments);
+    };
+    Chronicle.prototype.profileEnd = function () {
+        if (this._settings.alsoConsole &&
+            this._console.profileEnd !== undefined)
+            this._console.profileEnd.apply(this, arguments);
+    };
+    return Chronicle;
+}());
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar ArgHelpers = (function () {\n    function ArgHelpers() {\n    }\n    ArgHelpers.prototype.isArray = function (obj) {\n        return Object.prototype.toString.call(obj) === \"[object Array]\";\n    };\n    ArgHelpers.prototype.isObject = function (obj) {\n        return obj !== null && typeof obj === \"object\";\n    };\n    ArgHelpers.prototype.isObjectEmpty = function (obj) {\n        var hasOwnProperty = Object.prototype.hasOwnProperty;\n        for (var key in obj) {\n            if (hasOwnProperty.call(obj, key))\n                return false;\n        }\n        return true;\n    };\n    ArgHelpers.prototype.isString = function (obj) {\n        return typeof obj === \"string\" || obj instanceof String;\n    };\n    ArgHelpers.prototype.isArgDefined = function (obj) {\n        return obj !== undefined && obj !== null;\n    };\n    ArgHelpers.prototype.isArgEmpty = function (arg) {\n        if (this.isArray(arg)) {\n            return arg.length === 0;\n        }\n        else if (this.isObject(arg)) {\n            return this.isObjectEmpty(arg);\n        }\n        else if (this.isString(arg)) {\n            return arg.length === 0;\n        }\n        return false;\n    };\n    ArgHelpers.prototype.collateArguments = function (args) {\n        var data = [];\n        for (var i = 0; i < args.length; i++) {\n            var arg = args[i];\n            if (this.isArgDefined(arg) && !this.isArgEmpty(arg)) {\n                data.push(JSON.parse(JSON.stringify(arg)));\n            }\n        }\n        return data;\n    };\n    ArgHelpers.prototype.argumentsToArray = function (args) {\n        return Array.prototype.slice.call(args);\n    };\n    return ArgHelpers;\n}());\nexports.default = ArgHelpers;\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvQXJnSGVscGVycy50cy5qcyIsInNvdXJjZXMiOlsid2VicGFjazovLy8uL3NyYy9BcmdIZWxwZXJzLnRzPzQyNzIiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGRlZmF1bHQgY2xhc3MgQXJnSGVscGVycyB7XG4gICAgaXNBcnJheShvYmopIHtcbiAgICAgICAgcmV0dXJuIE9iamVjdC5wcm90b3R5cGUudG9TdHJpbmcuY2FsbChvYmopID09PSBcIltvYmplY3QgQXJyYXldXCI7XG4gICAgfVxuXG4gICAgaXNPYmplY3Qob2JqKSB7XG4gICAgICAgIHJldHVybiBvYmogIT09IG51bGwgJiYgdHlwZW9mIG9iaiA9PT0gXCJvYmplY3RcIjtcbiAgICB9XG5cbiAgICBpc09iamVjdEVtcHR5KG9iaikge1xuICAgICAgICB2YXIgaGFzT3duUHJvcGVydHkgPSBPYmplY3QucHJvdG90eXBlLmhhc093blByb3BlcnR5O1xuICAgICAgICBmb3IgKHZhciBrZXkgaW4gb2JqKSB7XG4gICAgICAgICAgICBpZiAoaGFzT3duUHJvcGVydHkuY2FsbChvYmosIGtleSkpIHJldHVybiBmYWxzZTtcbiAgICAgICAgfVxuICAgICAgICByZXR1cm4gdHJ1ZTtcbiAgICB9XG5cbiAgICBpc1N0cmluZyhvYmopIHtcbiAgICAgICAgcmV0dXJuIHR5cGVvZiBvYmogPT09IFwic3RyaW5nXCIgfHwgb2JqIGluc3RhbmNlb2YgU3RyaW5nO1xuICAgIH1cblxuICAgIGlzQXJnRGVmaW5lZChvYmopIHtcbiAgICAgICAgcmV0dXJuIG9iaiAhPT0gdW5kZWZpbmVkICYmIG9iaiAhPT0gbnVsbDtcbiAgICB9XG5cbiAgICBpc0FyZ0VtcHR5KGFyZykge1xuICAgICAgICBpZiAodGhpcy5pc0FycmF5KGFyZykpIHtcbiAgICAgICAgICAgIC8vIEFycmF5c1xuICAgICAgICAgICAgcmV0dXJuIGFyZy5sZW5ndGggPT09IDA7XG4gICAgICAgIH0gZWxzZSBpZiAodGhpcy5pc09iamVjdChhcmcpKSB7XG4gICAgICAgICAgICByZXR1cm4gdGhpcy5pc09iamVjdEVtcHR5KGFyZyk7XG4gICAgICAgIH0gZWxzZSBpZiAodGhpcy5pc1N0cmluZyhhcmcpKSB7XG4gICAgICAgICAgICByZXR1cm4gYXJnLmxlbmd0aCA9PT0gMDtcbiAgICAgICAgfVxuXG4gICAgICAgIHJldHVybiBmYWxzZTtcbiAgICB9XG5cbiAgICBjb2xsYXRlQXJndW1lbnRzKGFyZ3MpIHtcbiAgICAgICAgdmFyIGRhdGEgPSBbXTtcbiAgICAgICAgZm9yICh2YXIgaSA9IDA7IGkgPCBhcmdzLmxlbmd0aDsgaSsrKSB7XG4gICAgICAgICAgICB2YXIgYXJnID0gYXJnc1tpXTtcbiAgICAgICAgICAgIGlmICh0aGlzLmlzQXJnRGVmaW5lZChhcmcpICYmICF0aGlzLmlzQXJnRW1wdHkoYXJnKSkge1xuICAgICAgICAgICAgICAgIGRhdGEucHVzaChKU09OLnBhcnNlKEpTT04uc3RyaW5naWZ5KGFyZykpKTtcbiAgICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgICByZXR1cm4gZGF0YTtcbiAgICB9XG5cbiAgICBhcmd1bWVudHNUb0FycmF5KGFyZ3MpIHtcbiAgICAgICAgcmV0dXJuIEFycmF5LnByb3RvdHlwZS5zbGljZS5jYWxsKGFyZ3MpO1xuICAgIH1cbn1cbiJdLCJtYXBwaW5ncyI6Ijs7QUFBQTtBQUFBO0FBb0RBO0FBbkRBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFDQTtBQUFBO0FBQ0E7QUFDQTtBQUFBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7OyIsInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///./src/ArgHelpers.ts\n");
+var ArgHelpers = (function () {
+    function ArgHelpers() {
+    }
+    ArgHelpers.prototype.isArray = function (obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+    };
+    ArgHelpers.prototype.isObject = function (obj) {
+        return obj !== null && typeof obj === "object";
+    };
+    ArgHelpers.prototype.isObjectEmpty = function (obj) {
+        var hasOwnProperty = Object.prototype.hasOwnProperty;
+        for (var key in obj) {
+            if (hasOwnProperty.call(obj, key))
+                return false;
+        }
+        return true;
+    };
+    ArgHelpers.prototype.isString = function (obj) {
+        return typeof obj === "string" || obj instanceof String;
+    };
+    ArgHelpers.prototype.isArgDefined = function (obj) {
+        return obj !== undefined && obj !== null;
+    };
+    ArgHelpers.prototype.isArgEmpty = function (arg) {
+        if (this.isArray(arg)) {
+            return arg.length === 0;
+        }
+        else if (this.isObject(arg)) {
+            return this.isObjectEmpty(arg);
+        }
+        else if (this.isString(arg)) {
+            return arg.length === 0;
+        }
+        return false;
+    };
+    ArgHelpers.prototype.collateArguments = function (args) {
+        var data = [];
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            if (this.isArgDefined(arg) && !this.isArgEmpty(arg)) {
+                data.push(JSON.parse(JSON.stringify(arg)));
+            }
+        }
+        return data;
+    };
+    ArgHelpers.prototype.argumentsToArray = function (args) {
+        return Array.prototype.slice.call(args);
+    };
+    return ArgHelpers;
+}());
+//# sourceMappingURL=ArgHelpers.js.map
 
-/***/ }),
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
 
-/***/ "./src/ChronicleConsole.ts":
-/*!*********************************!*\
-  !*** ./src/ChronicleConsole.ts ***!
-  \*********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar ChronicleConsole = (function () {\n    function ChronicleConsole(argHelpers, environmentParser, groupStack) {\n        this._settings = {\n            serverURL: \"\",\n            appName: \"\",\n            env: null,\n            alsoConsole: true,\n            globalize: true,\n            methodsToLog: [\"action\", \"error\", \"warn\"],\n            customMethods: []\n        };\n        this._console = console;\n        this._timers = Object.create(null);\n        this._argHelpers = argHelpers;\n        this._environmentParser = environmentParser;\n        this._groupStack = groupStack;\n    }\n    ChronicleConsole.prototype.init = function (config) {\n        this._settings.serverURL = config.server || \"\";\n        this._settings.appName = config.app || \"\";\n        this._settings.env = config.env || null;\n        this._settings.alsoConsole = config.toConsole || true;\n        this._settings.globalize = config.globalize || true;\n        this._settings.methodsToLog = config.methodsToLog || [\n            \"action\",\n            \"error\",\n            \"warn\"\n        ];\n        this._settings.customMethods = config.customMethods || [];\n        this._registerCustomMethods();\n        this._console = config.consoleObject || console;\n        if (this._settings.globalize) {\n            this._overwriteGlobalConsole();\n        }\n        var windowIsAvailable = typeof window !== \"undefined\" &&\n            typeof window.navigator === \"object\";\n        if (!this._settings.env && windowIsAvailable) {\n            this._settings.env = window.navigator;\n        }\n        this._console.log(fetch);\n        if (typeof window !== \"undefined\") {\n            this._fetch = window.fetch.bind(window);\n        }\n        else {\n            this._console.error(\"ChronicleConsole :: No fetch() method defined.\");\n        }\n    };\n    ChronicleConsole.prototype._overwriteGlobalConsole = function () {\n        if (typeof console !== \"undefined\") {\n            console = this;\n        }\n    };\n    ChronicleConsole.prototype._registerCustomMethods = function () {\n        var _this = this;\n        this._settings.customMethods.forEach(function (method) {\n            if (typeof _this[method] === \"undefined\") {\n                _this[method] = function () {\n                    var args = this._argHelpers.argumentsToArray(arguments);\n                    if (args[0]) {\n                        var data = this._argHelpers.collateArguments(args);\n                        return this._logData(data, method);\n                    }\n                };\n            }\n        });\n    };\n    ChronicleConsole.prototype._logIt = function (data, type) {\n        if (!this._argHelpers.isArray(data) || data.length === 0) {\n            return true;\n        }\n        if (data.length === 1) {\n            data = data[0];\n        }\n        if (this._groupStack.isEmpty()) {\n            return this._sendData(data, type);\n        }\n        this._groupStack.pushLog({ log: data, type: type });\n    };\n    ChronicleConsole.prototype._sendData = function (data, type) {\n        var _this = this;\n        if (!this._settings.serverURL ||\n            !this._settings.appName ||\n            !this._settings.env) {\n            this._console.error(\"ChronicleConsole :: No server, app, or client info provided. Run init() first.\");\n            return false;\n        }\n        var envInfo = this._environmentParser.collate(this._settings.env);\n        var trace = this._stackTrace(4);\n        var dataToPost = {\n            app: this._settings.appName,\n            client: envInfo,\n            type: type,\n            data: data,\n            trace: trace\n        };\n        var params = {\n            method: \"post\",\n            body: JSON.stringify(dataToPost),\n            headers: {\n                \"Content-Type\": \"text/plain\"\n            }\n        };\n        this._fetch(this._settings.serverURL, params).catch(function (err) {\n            return _this._console.error(err);\n        });\n        return true;\n    };\n    ChronicleConsole.prototype._shouldLog = function (methodName) {\n        if (this._settings.methodsToLog === \"all\")\n            return true;\n        return this._settings.methodsToLog.indexOf(methodName) > -1\n            ? true\n            : false;\n    };\n    ChronicleConsole.prototype._now = function () {\n        if (typeof performance !== \"undefined\" &&\n            performance.now !== undefined) {\n            return performance.now();\n        }\n        else {\n            return Date.now();\n        }\n    };\n    ChronicleConsole.prototype._stackTrace = function (depth) {\n        var stackString = new Error().stack;\n        var trace = stackString.split(\"\\n\").slice(depth, -1);\n        return trace;\n    };\n    ChronicleConsole.prototype.action = function () {\n        if (!this._shouldLog(\"action\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"action\");\n        }\n    };\n    ChronicleConsole.prototype.assert = function (assertion) {\n        if (this._settings.alsoConsole)\n            this._console.assert.apply(this, arguments);\n        if (!this._shouldLog(\"assert\"))\n            return true;\n        if (!assertion) {\n            var args = this._argHelpers.argumentsToArray(arguments);\n            return this._logIt(this._argHelpers.collateArguments(args.slice(1)), \"assert\");\n        }\n    };\n    ChronicleConsole.prototype.error = function () {\n        if (this._settings.alsoConsole)\n            this._console.error.apply(this, arguments);\n        if (!this._shouldLog(\"error\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"error\");\n        }\n    };\n    ChronicleConsole.prototype.group = function () {\n        if (this._settings.alsoConsole)\n            this._console.group.apply(this, arguments);\n        if (!this._shouldLog(\"group\"))\n            return true;\n        this._groupStack.addGroup();\n    };\n    ChronicleConsole.prototype.groupCollapsed = function () {\n        if (this._settings.alsoConsole)\n            this._console.groupCollapsed.apply(this, arguments);\n        if (!this._shouldLog(\"groupCollapsed\"))\n            return true;\n        this._groupStack.addGroup();\n    };\n    ChronicleConsole.prototype.groupEnd = function () {\n        if (this._settings.alsoConsole)\n            this._console.groupEnd.apply(this, arguments);\n        if (!this._shouldLog(\"group\") && !this._shouldLog(\"groupCollapsed\"))\n            return true;\n        var head = this._groupStack.removeGroup();\n        if (!this._groupStack.isEmpty()) {\n            this._groupStack.pushLog({ type: \"group\", log: head });\n        }\n        else {\n            return this._logIt([{ type: \"group\", log: head }], \"group\");\n        }\n    };\n    ChronicleConsole.prototype.info = function () {\n        if (this._settings.alsoConsole)\n            this._console.info.apply(this, arguments);\n        if (!this._shouldLog(\"info\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"info\");\n        }\n    };\n    ChronicleConsole.prototype.log = function () {\n        if (this._settings.alsoConsole)\n            this._console.log.apply(this, arguments);\n        if (!this._shouldLog(\"log\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"log\");\n        }\n    };\n    ChronicleConsole.prototype.table = function () {\n        if (this._settings.alsoConsole)\n            this._console.table.apply(this, arguments);\n        if (!this._shouldLog(\"table\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"table\");\n        }\n    };\n    ChronicleConsole.prototype.time = function (label) {\n        if (this._settings.alsoConsole)\n            this._console.time(label);\n        if (!this._shouldLog(\"time\"))\n            return true;\n        var timerLabel = label === undefined ? \"default\" : \"\" + label;\n        this._timers[timerLabel] = this._now();\n    };\n    ChronicleConsole.prototype.timeEnd = function (label) {\n        if (this._settings.alsoConsole)\n            this._console.timeEnd(label);\n        if (!this._shouldLog(\"time\"))\n            return true;\n        var timerLabel = label === undefined ? \"default\" : \"\" + label;\n        if (this._timers[timerLabel] !== undefined) {\n            var elapsed = (this._now() - this._timers[timerLabel]).toFixed(2);\n            var data = [timerLabel + \": \" + elapsed + \"ms\"];\n            delete this._timers[timerLabel];\n            return this._logIt(data, \"time\");\n        }\n    };\n    ChronicleConsole.prototype.trace = function () {\n        if (this._settings.alsoConsole)\n            this._console.trace.apply(this, arguments);\n        if (!this._shouldLog(\"trace\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        var data = [];\n        if (args[0]) {\n            data = this._argHelpers.collateArguments(args);\n        }\n        data.push(this._stackTrace(2));\n        return this._logIt(data, \"trace\");\n    };\n    ChronicleConsole.prototype.warn = function () {\n        if (this._settings.alsoConsole)\n            this._console.warn.apply(this, arguments);\n        if (!this._shouldLog(\"warn\"))\n            return true;\n        var args = this._argHelpers.argumentsToArray(arguments);\n        if (args[0]) {\n            var data = this._argHelpers.collateArguments(args);\n            return this._logIt(data, \"warn\");\n        }\n    };\n    ChronicleConsole.prototype.clear = function () {\n        if (this._settings.alsoConsole)\n            this._console.clear();\n    };\n    ChronicleConsole.prototype.count = function () {\n        if (this._settings.alsoConsole)\n            this._console.count.apply(this, arguments);\n    };\n    ChronicleConsole.prototype.dir = function () {\n        if (this._settings.alsoConsole && this._console.dir !== undefined)\n            this._console.dir.apply(this, arguments);\n    };\n    ChronicleConsole.prototype.dirxml = function () {\n        if (this._settings.alsoConsole && this._console.dirxml !== undefined)\n            this._console.dirxml.apply(this, arguments);\n    };\n    ChronicleConsole.prototype.profile = function () {\n        if (this._settings.alsoConsole && this._console.profile !== undefined)\n            this._console.profile.apply(this, arguments);\n    };\n    ChronicleConsole.prototype.profileEnd = function () {\n        if (this._settings.alsoConsole &&\n            this._console.profileEnd !== undefined)\n            this._console.profileEnd.apply(this, arguments);\n    };\n    return ChronicleConsole;\n}());\nexports.default = ChronicleConsole;\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvQ2hyb25pY2xlQ29uc29sZS50cy5qcyIsInNvdXJjZXMiOlsid2VicGFjazovLy8uL3NyYy9DaHJvbmljbGVDb25zb2xlLnRzP2U3MmQiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBDb25zb2xlIG1ldGhvZHMuXG4gKi9cblxuaW1wb3J0IEdyb3VwU3RhY2sgZnJvbSBcIi4vR3JvdXBTdGFja1wiO1xuaW1wb3J0IEFyZ0hlbHBlcnMgZnJvbSBcIi4vQXJnSGVscGVyc1wiO1xuaW1wb3J0IEVudmlyb25tZW50UGFyc2VyIGZyb20gXCIuL0Vudmlyb25tZW50UGFyc2VyXCI7XG5cbmltcG9ydCAqIGFzIFR5cGVzIGZyb20gXCIuL3R5cGVzXCI7XG5cbmV4cG9ydCBkZWZhdWx0IGNsYXNzIENocm9uaWNsZUNvbnNvbGUge1xuICAgIHByaXZhdGUgX3NldHRpbmdzOiBUeXBlcy5JU2V0dGluZ3MgPSB7XG4gICAgICAgIHNlcnZlclVSTDogXCJcIixcbiAgICAgICAgYXBwTmFtZTogXCJcIixcbiAgICAgICAgZW52OiBudWxsLFxuICAgICAgICBhbHNvQ29uc29sZTogdHJ1ZSxcbiAgICAgICAgZ2xvYmFsaXplOiB0cnVlLFxuICAgICAgICBtZXRob2RzVG9Mb2c6IFtcImFjdGlvblwiLCBcImVycm9yXCIsIFwid2FyblwiXSxcbiAgICAgICAgY3VzdG9tTWV0aG9kczogW11cbiAgICB9O1xuXG4gICAgcHJpdmF0ZSBfYXJnSGVscGVyczogQXJnSGVscGVycztcbiAgICBwcml2YXRlIF9lbnZpcm9ubWVudFBhcnNlcjogRW52aXJvbm1lbnRQYXJzZXI7XG4gICAgcHJpdmF0ZSBfZ3JvdXBTdGFjazogR3JvdXBTdGFjaztcblxuICAgIHByaXZhdGUgX2NvbnNvbGUgPSBjb25zb2xlO1xuICAgIHByaXZhdGUgX2ZldGNoOiBhbnk7XG4gICAgcHJpdmF0ZSBfdGltZXJzID0gT2JqZWN0LmNyZWF0ZShudWxsKTtcblxuICAgIGNvbnN0cnVjdG9yKGFyZ0hlbHBlcnMsIGVudmlyb25tZW50UGFyc2VyLCBncm91cFN0YWNrKSB7XG4gICAgICAgIHRoaXMuX2FyZ0hlbHBlcnMgPSBhcmdIZWxwZXJzO1xuICAgICAgICB0aGlzLl9lbnZpcm9ubWVudFBhcnNlciA9IGVudmlyb25tZW50UGFyc2VyO1xuICAgICAgICB0aGlzLl9ncm91cFN0YWNrID0gZ3JvdXBTdGFjaztcbiAgICB9XG5cbiAgICBpbml0KGNvbmZpZykge1xuICAgICAgICB0aGlzLl9zZXR0aW5ncy5zZXJ2ZXJVUkwgPSBjb25maWcuc2VydmVyIHx8IFwiXCI7XG4gICAgICAgIHRoaXMuX3NldHRpbmdzLmFwcE5hbWUgPSBjb25maWcuYXBwIHx8IFwiXCI7XG4gICAgICAgIHRoaXMuX3NldHRpbmdzLmVudiA9IGNvbmZpZy5lbnYgfHwgbnVsbDsgLy8gVGhlIHVzZXJzIGVudmlyb25tZW50IGluZm9cbiAgICAgICAgdGhpcy5fc2V0dGluZ3MuYWxzb0NvbnNvbGUgPSBjb25maWcudG9Db25zb2xlIHx8IHRydWU7IC8vIExvZyB0byB0aGUgY29uc29sZT9cbiAgICAgICAgdGhpcy5fc2V0dGluZ3MuZ2xvYmFsaXplID0gY29uZmlnLmdsb2JhbGl6ZSB8fCB0cnVlOyAvLyBPdmVyd3JpdGUgdGhlIGdsb2JhbC93aW5kb3cgY29uc29sZVxuXG4gICAgICAgIC8vIFRoZSBtZXRob2RzIHRoYXQgc2hvdWxkIGJlIGxvZ2dlZCB0byB0aGUgc2VydmVyXG4gICAgICAgIHRoaXMuX3NldHRpbmdzLm1ldGhvZHNUb0xvZyA9IGNvbmZpZy5tZXRob2RzVG9Mb2cgfHwgW1xuICAgICAgICAgICAgXCJhY3Rpb25cIixcbiAgICAgICAgICAgIFwiZXJyb3JcIixcbiAgICAgICAgICAgIFwid2FyblwiXG4gICAgICAgIF07XG5cbiAgICAgICAgLy8gQ3VzdG9tIGxvZ2dpbmcgbWV0aG9kc1xuICAgICAgICB0aGlzLl9zZXR0aW5ncy5jdXN0b21NZXRob2RzID0gY29uZmlnLmN1c3RvbU1ldGhvZHMgfHwgW107XG4gICAgICAgIHRoaXMuX3JlZ2lzdGVyQ3VzdG9tTWV0aG9kcygpO1xuXG4gICAgICAgIC8vIFNldHVwIHRoZSBnbG9iYWwgY29uc29sZVxuICAgICAgICB0aGlzLl9jb25zb2xlID0gY29uZmlnLmNvbnNvbGVPYmplY3QgfHwgY29uc29sZTtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmdsb2JhbGl6ZSkge1xuICAgICAgICAgICAgdGhpcy5fb3ZlcndyaXRlR2xvYmFsQ29uc29sZSgpO1xuICAgICAgICB9XG5cbiAgICAgICAgdmFyIHdpbmRvd0lzQXZhaWxhYmxlID1cbiAgICAgICAgICAgIHR5cGVvZiB3aW5kb3cgIT09IFwidW5kZWZpbmVkXCIgJiZcbiAgICAgICAgICAgIHR5cGVvZiB3aW5kb3cubmF2aWdhdG9yID09PSBcIm9iamVjdFwiO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2V0dGluZ3MuZW52ICYmIHdpbmRvd0lzQXZhaWxhYmxlKSB7XG4gICAgICAgICAgICAvLyBTZXQgdGhlIGRlZmF1bHQgdG8gd2luZG93IG5hdmlnYXRvciBpZiBhdmFpbGFibGVcbiAgICAgICAgICAgIHRoaXMuX3NldHRpbmdzLmVudiA9IHdpbmRvdy5uYXZpZ2F0b3I7XG4gICAgICAgIH1cblxuICAgICAgICB0aGlzLl9jb25zb2xlLmxvZyhmZXRjaCk7XG4gICAgICAgIGlmICh0eXBlb2Ygd2luZG93ICE9PSBcInVuZGVmaW5lZFwiKSB7XG4gICAgICAgICAgICAvLyBEZWZpbmUgdGhlIGxvY2FsIGZldGNoIG1ldGhvZFxuICAgICAgICAgICAgdGhpcy5fZmV0Y2ggPSB3aW5kb3cuZmV0Y2guYmluZCh3aW5kb3cpO1xuICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5lcnJvcihcbiAgICAgICAgICAgICAgICBcIkNocm9uaWNsZUNvbnNvbGUgOjogTm8gZmV0Y2goKSBtZXRob2QgZGVmaW5lZC5cIlxuICAgICAgICAgICAgKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIHByaXZhdGUgX292ZXJ3cml0ZUdsb2JhbENvbnNvbGUoKSB7XG4gICAgICAgIGlmICh0eXBlb2YgY29uc29sZSAhPT0gXCJ1bmRlZmluZWRcIikge1xuICAgICAgICAgICAgKDxhbnk+Y29uc29sZSkgPSB0aGlzO1xuICAgICAgICB9XG4gICAgfVxuXG4gICAgcHJpdmF0ZSBfcmVnaXN0ZXJDdXN0b21NZXRob2RzKCkge1xuICAgICAgICB0aGlzLl9zZXR0aW5ncy5jdXN0b21NZXRob2RzLmZvckVhY2gobWV0aG9kID0+IHtcbiAgICAgICAgICAgIGlmICh0eXBlb2YgdGhpc1ttZXRob2RdID09PSBcInVuZGVmaW5lZFwiKSB7XG4gICAgICAgICAgICAgICAgdGhpc1ttZXRob2RdID0gZnVuY3Rpb24oKSB7XG4gICAgICAgICAgICAgICAgICAgIHZhciBhcmdzID0gdGhpcy5fYXJnSGVscGVycy5hcmd1bWVudHNUb0FycmF5KGFyZ3VtZW50cyk7XG4gICAgICAgICAgICAgICAgICAgIGlmIChhcmdzWzBdKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICB2YXIgZGF0YSA9IHRoaXMuX2FyZ0hlbHBlcnMuY29sbGF0ZUFyZ3VtZW50cyhhcmdzKTtcbiAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiB0aGlzLl9sb2dEYXRhKGRhdGEsIG1ldGhvZCk7XG4gICAgICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgICB9O1xuICAgICAgICAgICAgfVxuICAgICAgICB9KTtcbiAgICB9XG5cbiAgICBwcml2YXRlIF9sb2dJdChkYXRhLCB0eXBlKSB7XG4gICAgICAgIGlmICghdGhpcy5fYXJnSGVscGVycy5pc0FycmF5KGRhdGEpIHx8IGRhdGEubGVuZ3RoID09PSAwKSB7XG4gICAgICAgICAgICAvLyBPbmx5IGFsbG93IGFycmF5c1xuICAgICAgICAgICAgcmV0dXJuIHRydWU7XG4gICAgICAgIH1cblxuICAgICAgICBpZiAoZGF0YS5sZW5ndGggPT09IDEpIHtcbiAgICAgICAgICAgIC8vIERvbid0IGxvZyBhbiBhcnJheSBpZiB0aGVyZSBpcyBvbmx5IG9uZVxuICAgICAgICAgICAgLy8gcGllY2Ugb2YgZGF0YVxuICAgICAgICAgICAgZGF0YSA9IGRhdGFbMF07XG4gICAgICAgIH1cblxuICAgICAgICBpZiAodGhpcy5fZ3JvdXBTdGFjay5pc0VtcHR5KCkpIHtcbiAgICAgICAgICAgIHJldHVybiB0aGlzLl9zZW5kRGF0YShkYXRhLCB0eXBlKTtcbiAgICAgICAgfVxuXG4gICAgICAgIC8vIFRoZSB6ZXJvdGggZWxlbWVudCAoaGVhZCkgaG9sZHMgdGhlIGN1cnJlbnQgZ3JvdXBcbiAgICAgICAgdGhpcy5fZ3JvdXBTdGFjay5wdXNoTG9nKHsgbG9nOiBkYXRhLCB0eXBlIH0pO1xuICAgIH1cblxuICAgIHByaXZhdGUgX3NlbmREYXRhKGRhdGEsIHR5cGUpIHtcbiAgICAgICAgaWYgKFxuICAgICAgICAgICAgIXRoaXMuX3NldHRpbmdzLnNlcnZlclVSTCB8fFxuICAgICAgICAgICAgIXRoaXMuX3NldHRpbmdzLmFwcE5hbWUgfHxcbiAgICAgICAgICAgICF0aGlzLl9zZXR0aW5ncy5lbnZcbiAgICAgICAgKSB7XG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmVycm9yKFxuICAgICAgICAgICAgICAgIFwiQ2hyb25pY2xlQ29uc29sZSA6OiBObyBzZXJ2ZXIsIGFwcCwgb3IgY2xpZW50IGluZm8gcHJvdmlkZWQuIFJ1biBpbml0KCkgZmlyc3QuXCJcbiAgICAgICAgICAgICk7XG4gICAgICAgICAgICByZXR1cm4gZmFsc2U7XG4gICAgICAgIH1cblxuICAgICAgICB2YXIgZW52SW5mbyA9IHRoaXMuX2Vudmlyb25tZW50UGFyc2VyLmNvbGxhdGUodGhpcy5fc2V0dGluZ3MuZW52KTtcblxuICAgICAgICB2YXIgdHJhY2UgPSB0aGlzLl9zdGFja1RyYWNlKDQpO1xuXG4gICAgICAgIHZhciBkYXRhVG9Qb3N0ID0ge1xuICAgICAgICAgICAgYXBwOiB0aGlzLl9zZXR0aW5ncy5hcHBOYW1lLFxuICAgICAgICAgICAgY2xpZW50OiBlbnZJbmZvLFxuICAgICAgICAgICAgdHlwZTogdHlwZSxcbiAgICAgICAgICAgIGRhdGE6IGRhdGEsXG4gICAgICAgICAgICB0cmFjZTogdHJhY2VcbiAgICAgICAgfTtcblxuICAgICAgICB2YXIgcGFyYW1zID0ge1xuICAgICAgICAgICAgbWV0aG9kOiBcInBvc3RcIixcbiAgICAgICAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KGRhdGFUb1Bvc3QpLFxuICAgICAgICAgICAgaGVhZGVyczoge1xuICAgICAgICAgICAgICAgIFwiQ29udGVudC1UeXBlXCI6IFwidGV4dC9wbGFpblwiXG4gICAgICAgICAgICB9XG4gICAgICAgIH07XG5cbiAgICAgICAgdGhpcy5fZmV0Y2godGhpcy5fc2V0dGluZ3Muc2VydmVyVVJMLCBwYXJhbXMpLmNhdGNoKGVyciA9PlxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5lcnJvcihlcnIpXG4gICAgICAgICk7XG5cbiAgICAgICAgcmV0dXJuIHRydWU7XG4gICAgfVxuXG4gICAgcHJpdmF0ZSBfc2hvdWxkTG9nKG1ldGhvZE5hbWU6IHN0cmluZykge1xuICAgICAgICBpZiAodGhpcy5fc2V0dGluZ3MubWV0aG9kc1RvTG9nID09PSBcImFsbFwiKSByZXR1cm4gdHJ1ZTtcblxuICAgICAgICByZXR1cm4gdGhpcy5fc2V0dGluZ3MubWV0aG9kc1RvTG9nLmluZGV4T2YobWV0aG9kTmFtZSkgPiAtMVxuICAgICAgICAgICAgPyB0cnVlXG4gICAgICAgICAgICA6IGZhbHNlO1xuICAgIH1cblxuICAgIHByaXZhdGUgX25vdygpIHtcbiAgICAgICAgaWYgKFxuICAgICAgICAgICAgdHlwZW9mIHBlcmZvcm1hbmNlICE9PSBcInVuZGVmaW5lZFwiICYmXG4gICAgICAgICAgICBwZXJmb3JtYW5jZS5ub3cgIT09IHVuZGVmaW5lZFxuICAgICAgICApIHtcbiAgICAgICAgICAgIHJldHVybiBwZXJmb3JtYW5jZS5ub3coKTtcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICAgIHJldHVybiBEYXRlLm5vdygpO1xuICAgICAgICB9XG4gICAgfVxuXG4gICAgLy8gRnJvbSBodHRwczovL3N0YWNrb3ZlcmZsb3cuY29tL2EvNjM1ODUyLzQ3MDU3N1xuICAgIHByaXZhdGUgX3N0YWNrVHJhY2UoZGVwdGgpIHtcbiAgICAgICAgdmFyIHN0YWNrU3RyaW5nID0gbmV3IEVycm9yKCkuc3RhY2s7XG4gICAgICAgIC8vIFJlbW92ZSB0aGUgdHJhY2UgbGluZXMgZm9yIHRoaXMgYW5kIHRyYWNlKCkgY2FsbFxuICAgICAgICAvLyBmcm9tIGRlcHRoIHRvIC0xICh0aGUgc3BsaXQgYWRkcyBhbiBleHRyYSBlbXB0eSBlbGVtZW50KVxuICAgICAgICB2YXIgdHJhY2UgPSBzdGFja1N0cmluZy5zcGxpdChcIlxcblwiKS5zbGljZShkZXB0aCwgLTEpO1xuICAgICAgICByZXR1cm4gdHJhY2U7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogVGhpcyBpcyBhIG1ldGhvZCBub3QgcHJvdmlkZWQgYnkgdGhlXG4gICAgICogc3RhbmRhcmQvZ2xvYmFsIGNvbnNvbGUuIFRoaXMgbWV0aG9kIGlzXG4gICAgICogdXNlZCBmb3IgbG9nZ2luZyB1c2VyIGFjdGlvbnMuXG4gICAgICovXG4gICAgYWN0aW9uKCkge1xuICAgICAgICBpZiAoIXRoaXMuX3Nob3VsZExvZyhcImFjdGlvblwiKSkgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIGFyZ3MgPSB0aGlzLl9hcmdIZWxwZXJzLmFyZ3VtZW50c1RvQXJyYXkoYXJndW1lbnRzKTtcbiAgICAgICAgaWYgKGFyZ3NbMF0pIHtcbiAgICAgICAgICAgIHZhciBkYXRhID0gdGhpcy5fYXJnSGVscGVycy5jb2xsYXRlQXJndW1lbnRzKGFyZ3MpO1xuICAgICAgICAgICAgcmV0dXJuIHRoaXMuX2xvZ0l0KGRhdGEsIFwiYWN0aW9uXCIpO1xuICAgICAgICB9XG4gICAgfVxuXG4gICAgYXNzZXJ0KGFzc2VydGlvbikge1xuICAgICAgICBpZiAodGhpcy5fc2V0dGluZ3MuYWxzb0NvbnNvbGUpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmFzc2VydC5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwiYXNzZXJ0XCIpKSByZXR1cm4gdHJ1ZTtcblxuICAgICAgICBpZiAoIWFzc2VydGlvbikge1xuICAgICAgICAgICAgdmFyIGFyZ3MgPSB0aGlzLl9hcmdIZWxwZXJzLmFyZ3VtZW50c1RvQXJyYXkoYXJndW1lbnRzKTtcbiAgICAgICAgICAgIHJldHVybiB0aGlzLl9sb2dJdChcbiAgICAgICAgICAgICAgICB0aGlzLl9hcmdIZWxwZXJzLmNvbGxhdGVBcmd1bWVudHMoYXJncy5zbGljZSgxKSksXG4gICAgICAgICAgICAgICAgXCJhc3NlcnRcIlxuICAgICAgICAgICAgKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIGVycm9yKCkge1xuICAgICAgICBpZiAodGhpcy5fc2V0dGluZ3MuYWxzb0NvbnNvbGUpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmVycm9yLmFwcGx5KHRoaXMsIGFyZ3VtZW50cyk7XG5cbiAgICAgICAgaWYgKCF0aGlzLl9zaG91bGRMb2coXCJlcnJvclwiKSkgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIGFyZ3MgPSB0aGlzLl9hcmdIZWxwZXJzLmFyZ3VtZW50c1RvQXJyYXkoYXJndW1lbnRzKTtcbiAgICAgICAgaWYgKGFyZ3NbMF0pIHtcbiAgICAgICAgICAgIHZhciBkYXRhID0gdGhpcy5fYXJnSGVscGVycy5jb2xsYXRlQXJndW1lbnRzKGFyZ3MpO1xuICAgICAgICAgICAgcmV0dXJuIHRoaXMuX2xvZ0l0KGRhdGEsIFwiZXJyb3JcIik7XG4gICAgICAgIH1cbiAgICB9XG5cbiAgICBncm91cCgpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKVxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5ncm91cC5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwiZ3JvdXBcIikpIHJldHVybiB0cnVlO1xuXG4gICAgICAgIHRoaXMuX2dyb3VwU3RhY2suYWRkR3JvdXAoKTtcbiAgICB9XG5cbiAgICBncm91cENvbGxhcHNlZCgpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKVxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5ncm91cENvbGxhcHNlZC5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwiZ3JvdXBDb2xsYXBzZWRcIikpIHJldHVybiB0cnVlO1xuXG4gICAgICAgIHRoaXMuX2dyb3VwU3RhY2suYWRkR3JvdXAoKTtcbiAgICB9XG5cbiAgICBncm91cEVuZCgpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKVxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5ncm91cEVuZC5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwiZ3JvdXBcIikgJiYgIXRoaXMuX3Nob3VsZExvZyhcImdyb3VwQ29sbGFwc2VkXCIpKVxuICAgICAgICAgICAgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIGhlYWQgPSB0aGlzLl9ncm91cFN0YWNrLnJlbW92ZUdyb3VwKCk7XG4gICAgICAgIGlmICghdGhpcy5fZ3JvdXBTdGFjay5pc0VtcHR5KCkpIHtcbiAgICAgICAgICAgIC8vIFB1dCB0aGUgZmluaXNoZWQgZ3JvdXAgaW50byB0aGUgc3RpbGwgYWN0aXZlIGdyb3VwXG4gICAgICAgICAgICB0aGlzLl9ncm91cFN0YWNrLnB1c2hMb2coeyB0eXBlOiBcImdyb3VwXCIsIGxvZzogaGVhZCB9KTtcbiAgICAgICAgfSBlbHNlIHtcbiAgICAgICAgICAgIHJldHVybiB0aGlzLl9sb2dJdChbeyB0eXBlOiBcImdyb3VwXCIsIGxvZzogaGVhZCB9XSwgXCJncm91cFwiKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIGluZm8oKSB7XG4gICAgICAgIGlmICh0aGlzLl9zZXR0aW5ncy5hbHNvQ29uc29sZSlcbiAgICAgICAgICAgIHRoaXMuX2NvbnNvbGUuaW5mby5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwiaW5mb1wiKSkgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIGFyZ3MgPSB0aGlzLl9hcmdIZWxwZXJzLmFyZ3VtZW50c1RvQXJyYXkoYXJndW1lbnRzKTtcbiAgICAgICAgaWYgKGFyZ3NbMF0pIHtcbiAgICAgICAgICAgIHZhciBkYXRhID0gdGhpcy5fYXJnSGVscGVycy5jb2xsYXRlQXJndW1lbnRzKGFyZ3MpO1xuICAgICAgICAgICAgcmV0dXJuIHRoaXMuX2xvZ0l0KGRhdGEsIFwiaW5mb1wiKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIGxvZygpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKVxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS5sb2cuYXBwbHkodGhpcywgYXJndW1lbnRzKTtcblxuICAgICAgICBpZiAoIXRoaXMuX3Nob3VsZExvZyhcImxvZ1wiKSkgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIGFyZ3MgPSB0aGlzLl9hcmdIZWxwZXJzLmFyZ3VtZW50c1RvQXJyYXkoYXJndW1lbnRzKTtcbiAgICAgICAgaWYgKGFyZ3NbMF0pIHtcbiAgICAgICAgICAgIHZhciBkYXRhID0gdGhpcy5fYXJnSGVscGVycy5jb2xsYXRlQXJndW1lbnRzKGFyZ3MpO1xuICAgICAgICAgICAgcmV0dXJuIHRoaXMuX2xvZ0l0KGRhdGEsIFwibG9nXCIpO1xuICAgICAgICB9XG4gICAgfVxuXG4gICAgdGFibGUoKSB7XG4gICAgICAgIGlmICh0aGlzLl9zZXR0aW5ncy5hbHNvQ29uc29sZSlcbiAgICAgICAgICAgIHRoaXMuX2NvbnNvbGUudGFibGUuYXBwbHkodGhpcywgYXJndW1lbnRzKTtcblxuICAgICAgICBpZiAoIXRoaXMuX3Nob3VsZExvZyhcInRhYmxlXCIpKSByZXR1cm4gdHJ1ZTtcblxuICAgICAgICB2YXIgYXJncyA9IHRoaXMuX2FyZ0hlbHBlcnMuYXJndW1lbnRzVG9BcnJheShhcmd1bWVudHMpO1xuICAgICAgICBpZiAoYXJnc1swXSkge1xuICAgICAgICAgICAgdmFyIGRhdGEgPSB0aGlzLl9hcmdIZWxwZXJzLmNvbGxhdGVBcmd1bWVudHMoYXJncyk7XG4gICAgICAgICAgICByZXR1cm4gdGhpcy5fbG9nSXQoZGF0YSwgXCJ0YWJsZVwiKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIHRpbWUobGFiZWwpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKSB0aGlzLl9jb25zb2xlLnRpbWUobGFiZWwpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwidGltZVwiKSkgcmV0dXJuIHRydWU7XG5cbiAgICAgICAgdmFyIHRpbWVyTGFiZWwgPSBsYWJlbCA9PT0gdW5kZWZpbmVkID8gXCJkZWZhdWx0XCIgOiBgJHtsYWJlbH1gO1xuICAgICAgICB0aGlzLl90aW1lcnNbdGltZXJMYWJlbF0gPSB0aGlzLl9ub3coKTtcbiAgICB9XG5cbiAgICB0aW1lRW5kKGxhYmVsKSB7XG4gICAgICAgIGlmICh0aGlzLl9zZXR0aW5ncy5hbHNvQ29uc29sZSkgdGhpcy5fY29uc29sZS50aW1lRW5kKGxhYmVsKTtcblxuICAgICAgICBpZiAoIXRoaXMuX3Nob3VsZExvZyhcInRpbWVcIikpIHJldHVybiB0cnVlO1xuXG4gICAgICAgIHZhciB0aW1lckxhYmVsID0gbGFiZWwgPT09IHVuZGVmaW5lZCA/IFwiZGVmYXVsdFwiIDogYCR7bGFiZWx9YDtcblxuICAgICAgICBpZiAodGhpcy5fdGltZXJzW3RpbWVyTGFiZWxdICE9PSB1bmRlZmluZWQpIHtcbiAgICAgICAgICAgIHZhciBlbGFwc2VkID0gKHRoaXMuX25vdygpIC0gdGhpcy5fdGltZXJzW3RpbWVyTGFiZWxdKS50b0ZpeGVkKDIpO1xuICAgICAgICAgICAgdmFyIGRhdGEgPSBbYCR7dGltZXJMYWJlbH06ICR7ZWxhcHNlZH1tc2BdO1xuICAgICAgICAgICAgZGVsZXRlIHRoaXMuX3RpbWVyc1t0aW1lckxhYmVsXTtcbiAgICAgICAgICAgIHJldHVybiB0aGlzLl9sb2dJdChkYXRhLCBcInRpbWVcIik7XG4gICAgICAgIH1cbiAgICB9XG5cbiAgICB0cmFjZSgpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlKVxuICAgICAgICAgICAgdGhpcy5fY29uc29sZS50cmFjZS5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuXG4gICAgICAgIGlmICghdGhpcy5fc2hvdWxkTG9nKFwidHJhY2VcIikpIHJldHVybiB0cnVlO1xuXG4gICAgICAgIHZhciBhcmdzID0gdGhpcy5fYXJnSGVscGVycy5hcmd1bWVudHNUb0FycmF5KGFyZ3VtZW50cyk7XG4gICAgICAgIHZhciBkYXRhID0gW107XG4gICAgICAgIGlmIChhcmdzWzBdKSB7XG4gICAgICAgICAgICBkYXRhID0gdGhpcy5fYXJnSGVscGVycy5jb2xsYXRlQXJndW1lbnRzKGFyZ3MpO1xuICAgICAgICB9XG5cbiAgICAgICAgZGF0YS5wdXNoKHRoaXMuX3N0YWNrVHJhY2UoMikpO1xuICAgICAgICByZXR1cm4gdGhpcy5fbG9nSXQoZGF0YSwgXCJ0cmFjZVwiKTtcbiAgICB9XG5cbiAgICB3YXJuKCkge1xuICAgICAgICBpZiAodGhpcy5fc2V0dGluZ3MuYWxzb0NvbnNvbGUpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLndhcm4uYXBwbHkodGhpcywgYXJndW1lbnRzKTtcblxuICAgICAgICBpZiAoIXRoaXMuX3Nob3VsZExvZyhcIndhcm5cIikpIHJldHVybiB0cnVlO1xuXG4gICAgICAgIHZhciBhcmdzID0gdGhpcy5fYXJnSGVscGVycy5hcmd1bWVudHNUb0FycmF5KGFyZ3VtZW50cyk7XG4gICAgICAgIGlmIChhcmdzWzBdKSB7XG4gICAgICAgICAgICB2YXIgZGF0YSA9IHRoaXMuX2FyZ0hlbHBlcnMuY29sbGF0ZUFyZ3VtZW50cyhhcmdzKTtcbiAgICAgICAgICAgIHJldHVybiB0aGlzLl9sb2dJdChkYXRhLCBcIndhcm5cIik7XG4gICAgICAgIH1cbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBTdHVicyBmb3IgY29uc29sZSBmdW5jdGlvbnMgdGhhdCBhcmVuJ3QgbG9nZ2VkXG4gICAgICovXG4gICAgY2xlYXIoKSB7XG4gICAgICAgIGlmICh0aGlzLl9zZXR0aW5ncy5hbHNvQ29uc29sZSkgdGhpcy5fY29uc29sZS5jbGVhcigpO1xuICAgIH1cblxuICAgIGNvdW50KCkge1xuICAgICAgICBpZiAodGhpcy5fc2V0dGluZ3MuYWxzb0NvbnNvbGUpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmNvdW50LmFwcGx5KHRoaXMsIGFyZ3VtZW50cyk7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogU3R1YnMgZm9yIE5vbi1TdGFuZGFyZCBjb25zb2xlIGZ1bmN0aW9uc1xuICAgICAqL1xuICAgIGRpcigpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlICYmIHRoaXMuX2NvbnNvbGUuZGlyICE9PSB1bmRlZmluZWQpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmRpci5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuICAgIH1cblxuICAgIGRpcnhtbCgpIHtcbiAgICAgICAgaWYgKHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlICYmIHRoaXMuX2NvbnNvbGUuZGlyeG1sICE9PSB1bmRlZmluZWQpXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLmRpcnhtbC5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuICAgIH1cblxuICAgIHByb2ZpbGUoKSB7XG4gICAgICAgIGlmICh0aGlzLl9zZXR0aW5ncy5hbHNvQ29uc29sZSAmJiB0aGlzLl9jb25zb2xlLnByb2ZpbGUgIT09IHVuZGVmaW5lZClcbiAgICAgICAgICAgIHRoaXMuX2NvbnNvbGUucHJvZmlsZS5hcHBseSh0aGlzLCBhcmd1bWVudHMpO1xuICAgIH1cblxuICAgIHByb2ZpbGVFbmQoKSB7XG4gICAgICAgIGlmIChcbiAgICAgICAgICAgIHRoaXMuX3NldHRpbmdzLmFsc29Db25zb2xlICYmXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLnByb2ZpbGVFbmQgIT09IHVuZGVmaW5lZFxuICAgICAgICApXG4gICAgICAgICAgICB0aGlzLl9jb25zb2xlLnByb2ZpbGVFbmQuYXBwbHkodGhpcywgYXJndW1lbnRzKTtcbiAgICB9XG59XG4iXSwibWFwcGluZ3MiOiI7O0FBVUE7QUFtQkE7QUFsQkE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBTUE7QUFFQTtBQUdBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBR0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUdBO0FBQ0E7QUFHQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBRUE7QUFFQTtBQUVBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFDQTtBQUFBO0FBQ0E7QUFHQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFDQTtBQUVBO0FBR0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUdBO0FBQ0E7QUFFQTtBQUFBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFHQTtBQUNBO0FBRUE7QUFFQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQUE7QUFHQTtBQUNBO0FBRUE7QUFDQTtBQUFBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFFQTtBQUNBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFHQTtBQUNBO0FBR0E7QUFDQTtBQUNBO0FBT0E7QUFDQTtBQUFBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBRUE7QUFBQTtBQUVBO0FBQ0E7QUFDQTtBQUlBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUFBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBRUE7QUFBQTtBQUVBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUFBO0FBRUE7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFFQTtBQUNBO0FBRUE7QUFDQTtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBRUE7QUFBQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUVBO0FBQUE7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUFBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUFBO0FBRUE7QUFBQTtBQUVBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFBQTtBQUVBO0FBQUE7QUFFQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBRUE7QUFBQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFFQTtBQUFBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBS0E7QUFDQTtBQUFBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUtBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFFQTtBQUVBO0FBQ0E7QUFDQTtBQUFBOzsiLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///./src/ChronicleConsole.ts\n");
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
 
-/***/ }),
+var __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+    return t;
+};
 
-/***/ "./src/EnvironmentParser.ts":
-/*!**********************************!*\
-  !*** ./src/EnvironmentParser.ts ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+var EnvironmentParser = (function () {
+    function EnvironmentParser() {
+    }
+    EnvironmentParser.prototype.collate = function (info) {
+        return __assign({}, this._browserInfo(info), this._sharedInfo(info), this._reactNativeInfo(info));
+    };
+    EnvironmentParser.prototype._browserInfo = function (info) {
+        var env = {};
+        env.appCodeName = info.appCodeName || null;
+        env.appVersion = info.appVersion || null;
+        env.cookieEnabled = info.cookieEnabled || null;
+        env.language = info.language || null;
+        env.oscpu = info.oscpu || null;
+        env.platform = info.platform || null;
+        env.product = info.product || null;
+        env.productSub = info.productSub || null;
+        env.vendor = info.vendor || null;
+        env.vendorSub = info.vendorSub || null;
+        return env;
+    };
+    EnvironmentParser.prototype._sharedInfo = function (info) {
+        var env = {};
+        env.appName = info.appName || null;
+        env.userAgent = info.userAgent || null;
+        return env;
+    };
+    EnvironmentParser.prototype._reactNativeInfo = function (info) {
+        var env = {};
+        env.brand = info.brand || null;
+        env.buildNumber = info.buildNumber || null;
+        env.bundleId = info.bundleId || null;
+        env.deviceCountry = info.deviceCountry || null;
+        env.deviceId = info.deviceId || null;
+        env.deviceLocale = info.deviceLocale || null;
+        env.deviceName = info.deviceName || null;
+        env.manufacturer = info.manufacturer || null;
+        env.model = info.model || null;
+        env.systemName = info.systemName || null;
+        env.systemVersion = info.systemVersion || null;
+        env.timezone = info.timezone || null;
+        env.uniqueId = info.uniqueId || null;
+        env.version = info.version || null;
+        env.isEmulator = info.isEmulator || null;
+        env.isTablet = info.isTablet || null;
+        return env;
+    };
+    return EnvironmentParser;
+}());
+//# sourceMappingURL=EnvironmentParser.js.map
 
-"use strict";
-eval("\nvar __assign = (this && this.__assign) || Object.assign || function(t) {\n    for (var s, i = 1, n = arguments.length; i < n; i++) {\n        s = arguments[i];\n        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))\n            t[p] = s[p];\n    }\n    return t;\n};\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar EnvironmentParser = (function () {\n    function EnvironmentParser() {\n    }\n    EnvironmentParser.prototype.collate = function (info) {\n        var env = {};\n        return __assign({}, this._browserInfo(info), this._sharedInfo(info), this._reactNativeInfo(info));\n    };\n    EnvironmentParser.prototype._browserInfo = function (info) {\n        var env = {};\n        env.appCodeName = info.appCodeName || null;\n        env.appVersion = info.appVersion || null;\n        env.cookieEnabled = info.cookieEnabled || null;\n        env.language = info.language || null;\n        env.oscpu = info.oscpu || null;\n        env.platform = info.platform || null;\n        env.product = info.product || null;\n        env.productSub = info.productSub || null;\n        env.vendor = info.vendor || null;\n        env.vendorSub = info.vendorSub || null;\n        return env;\n    };\n    EnvironmentParser.prototype._sharedInfo = function (info) {\n        var env = {};\n        env.appName = info.appName || null;\n        env.userAgent = info.userAgent || null;\n        return env;\n    };\n    EnvironmentParser.prototype._reactNativeInfo = function (info) {\n        var env = {};\n        env.brand = info.brand || null;\n        env.buildNumber = info.buildNumber || null;\n        env.bundleId = info.bundleId || null;\n        env.deviceCountry = info.deviceCountry || null;\n        env.deviceId = info.deviceId || null;\n        env.deviceLocale = info.deviceLocale || null;\n        env.deviceName = info.deviceName || null;\n        env.manufacturer = info.manufacturer || null;\n        env.model = info.model || null;\n        env.systemName = info.systemName || null;\n        env.systemVersion = info.systemVersion || null;\n        env.timezone = info.timezone || null;\n        env.uniqueId = info.uniqueId || null;\n        env.version = info.version || null;\n        env.isEmulator = info.isEmulator || null;\n        env.isTablet = info.isTablet || null;\n        return env;\n    };\n    return EnvironmentParser;\n}());\nexports.default = EnvironmentParser;\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvRW52aXJvbm1lbnRQYXJzZXIudHMuanMiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8vLi9zcmMvRW52aXJvbm1lbnRQYXJzZXIudHM/MmExNCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgKiBhcyBUeXBlcyBmcm9tIFwiLi90eXBlc1wiO1xuXG5leHBvcnQgZGVmYXVsdCBjbGFzcyBFbnZpcm9ubWVudFBhcnNlciB7XG4gICAgY29sbGF0ZShpbmZvKSB7XG4gICAgICAgIHZhciBlbnY6IFR5cGVzLklFbnZyb25tZW50ID0ge307XG5cbiAgICAgICAgcmV0dXJuIHtcbiAgICAgICAgICAgIC4uLnRoaXMuX2Jyb3dzZXJJbmZvKGluZm8pLFxuICAgICAgICAgICAgLi4udGhpcy5fc2hhcmVkSW5mbyhpbmZvKSxcbiAgICAgICAgICAgIC4uLnRoaXMuX3JlYWN0TmF0aXZlSW5mbyhpbmZvKVxuICAgICAgICB9O1xuICAgIH1cblxuICAgIHByaXZhdGUgX2Jyb3dzZXJJbmZvKGluZm8pIHtcbiAgICAgICAgdmFyIGVudjogVHlwZXMuSUVudnJvbm1lbnQgPSB7fTtcblxuICAgICAgICAvLyBXZWIgQnJvd3NlciBPbmx5IEVudmlyb25tZW50IEluZm9cbiAgICAgICAgZW52LmFwcENvZGVOYW1lID0gaW5mby5hcHBDb2RlTmFtZSB8fCBudWxsO1xuICAgICAgICBlbnYuYXBwVmVyc2lvbiA9IGluZm8uYXBwVmVyc2lvbiB8fCBudWxsO1xuICAgICAgICBlbnYuY29va2llRW5hYmxlZCA9IGluZm8uY29va2llRW5hYmxlZCB8fCBudWxsO1xuICAgICAgICBlbnYubGFuZ3VhZ2UgPSBpbmZvLmxhbmd1YWdlIHx8IG51bGw7XG4gICAgICAgIGVudi5vc2NwdSA9IGluZm8ub3NjcHUgfHwgbnVsbDtcbiAgICAgICAgZW52LnBsYXRmb3JtID0gaW5mby5wbGF0Zm9ybSB8fCBudWxsO1xuICAgICAgICBlbnYucHJvZHVjdCA9IGluZm8ucHJvZHVjdCB8fCBudWxsO1xuICAgICAgICBlbnYucHJvZHVjdFN1YiA9IGluZm8ucHJvZHVjdFN1YiB8fCBudWxsO1xuICAgICAgICBlbnYudmVuZG9yID0gaW5mby52ZW5kb3IgfHwgbnVsbDtcbiAgICAgICAgZW52LnZlbmRvclN1YiA9IGluZm8udmVuZG9yU3ViIHx8IG51bGw7XG5cbiAgICAgICAgcmV0dXJuIGVudjtcbiAgICB9XG5cbiAgICBwcml2YXRlIF9zaGFyZWRJbmZvKGluZm8pIHtcbiAgICAgICAgdmFyIGVudjogVHlwZXMuSUVudnJvbm1lbnQgPSB7fTtcblxuICAgICAgICAvLyBXZWIgQnJvd3NlciBBTkQgUmVhY3QgTmF0aXZlXG4gICAgICAgIGVudi5hcHBOYW1lID0gaW5mby5hcHBOYW1lIHx8IG51bGw7XG4gICAgICAgIGVudi51c2VyQWdlbnQgPSBpbmZvLnVzZXJBZ2VudCB8fCBudWxsO1xuXG4gICAgICAgIHJldHVybiBlbnY7XG4gICAgfVxuXG4gICAgcHJpdmF0ZSBfcmVhY3ROYXRpdmVJbmZvKGluZm8pIHtcbiAgICAgICAgdmFyIGVudjogVHlwZXMuSUVudnJvbm1lbnQgPSB7fTtcblxuICAgICAgICAvLyBSZWFjdCBOYXRpdmUgT25seSBFbnZpcm9ubWVudCBJbmZvXG4gICAgICAgIGVudi5icmFuZCA9IGluZm8uYnJhbmQgfHwgbnVsbDtcbiAgICAgICAgZW52LmJ1aWxkTnVtYmVyID0gaW5mby5idWlsZE51bWJlciB8fCBudWxsO1xuICAgICAgICBlbnYuYnVuZGxlSWQgPSBpbmZvLmJ1bmRsZUlkIHx8IG51bGw7XG4gICAgICAgIGVudi5kZXZpY2VDb3VudHJ5ID0gaW5mby5kZXZpY2VDb3VudHJ5IHx8IG51bGw7XG4gICAgICAgIGVudi5kZXZpY2VJZCA9IGluZm8uZGV2aWNlSWQgfHwgbnVsbDtcbiAgICAgICAgZW52LmRldmljZUxvY2FsZSA9IGluZm8uZGV2aWNlTG9jYWxlIHx8IG51bGw7XG4gICAgICAgIGVudi5kZXZpY2VOYW1lID0gaW5mby5kZXZpY2VOYW1lIHx8IG51bGw7XG4gICAgICAgIGVudi5tYW51ZmFjdHVyZXIgPSBpbmZvLm1hbnVmYWN0dXJlciB8fCBudWxsO1xuICAgICAgICBlbnYubW9kZWwgPSBpbmZvLm1vZGVsIHx8IG51bGw7XG4gICAgICAgIGVudi5zeXN0ZW1OYW1lID0gaW5mby5zeXN0ZW1OYW1lIHx8IG51bGw7XG4gICAgICAgIGVudi5zeXN0ZW1WZXJzaW9uID0gaW5mby5zeXN0ZW1WZXJzaW9uIHx8IG51bGw7XG4gICAgICAgIGVudi50aW1lem9uZSA9IGluZm8udGltZXpvbmUgfHwgbnVsbDtcbiAgICAgICAgZW52LnVuaXF1ZUlkID0gaW5mby51bmlxdWVJZCB8fCBudWxsO1xuICAgICAgICBlbnYudmVyc2lvbiA9IGluZm8udmVyc2lvbiB8fCBudWxsO1xuICAgICAgICBlbnYuaXNFbXVsYXRvciA9IGluZm8uaXNFbXVsYXRvciB8fCBudWxsO1xuICAgICAgICBlbnYuaXNUYWJsZXQgPSBpbmZvLmlzVGFibGV0IHx8IG51bGw7XG5cbiAgICAgICAgcmV0dXJuIGVudjtcbiAgICB9XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7QUFFQTtBQUFBO0FBOERBO0FBN0RBO0FBQ0E7QUFFQTtBQUtBO0FBRUE7QUFDQTtBQUdBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUVBO0FBQ0E7QUFHQTtBQUNBO0FBRUE7QUFDQTtBQUVBO0FBQ0E7QUFHQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUFBOzsiLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///./src/EnvironmentParser.ts\n");
+var GroupStack = (function () {
+    function GroupStack() {
+        this._stack = [];
+    }
+    GroupStack.prototype.addGroup = function () {
+        this._stack.unshift([]);
+    };
+    GroupStack.prototype.removeGroup = function () {
+        return this._stack.shift();
+    };
+    GroupStack.prototype.pushLog = function (logItem) {
+        this._stack[0].push(logItem);
+    };
+    GroupStack.prototype.isEmpty = function () {
+        return this._stack.length === 0;
+    };
+    return GroupStack;
+}());
+//# sourceMappingURL=GroupStack.js.map
 
-/***/ }),
+var argHelpers = new ArgHelpers();
+var environmentParser = new EnvironmentParser();
+var groupStack = new GroupStack();
+var index = new Chronicle(argHelpers, environmentParser, groupStack);
+//# sourceMappingURL=index.js.map
 
-/***/ "./src/GroupStack.ts":
-/*!***************************!*\
-  !*** ./src/GroupStack.ts ***!
-  \***************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+return index;
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar GroupStack = (function () {\n    function GroupStack() {\n        this._stack = [];\n    }\n    GroupStack.prototype.addGroup = function () {\n        this._stack.unshift([]);\n    };\n    GroupStack.prototype.removeGroup = function () {\n        return this._stack.shift();\n    };\n    GroupStack.prototype.pushLog = function (logItem) {\n        this._stack[0].push(logItem);\n    };\n    GroupStack.prototype.isEmpty = function () {\n        return this._stack.length === 0;\n    };\n    return GroupStack;\n}());\nexports.default = GroupStack;\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvR3JvdXBTdGFjay50cy5qcyIsInNvdXJjZXMiOlsid2VicGFjazovLy8uL3NyYy9Hcm91cFN0YWNrLnRzPzgzNDgiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBjb25zb2xlLmdyb3VwKCkgYW5kIGNvbnNvbGUuZ3JvdXBDb2xsYXBzZWQoKSBhZGQgbG9nIGVsZW1lbnRzXG4gKiB0byBhIG5lc3RlZCBzdGFjay5cbiAqXG4gKiBjb25zb2xlLmdyb3VwRW5kKCkgcmVtb3ZlcyB0aGF0IHNldCBvZiBsb2dzIGZyb20gdGhlIHN0YWNrXG4gKi9cblxuZXhwb3J0IGRlZmF1bHQgY2xhc3MgR3JvdXBTdGFjayB7XG4gICAgcHJpdmF0ZSBfc3RhY2sgPSBbXTtcblxuICAgIGFkZEdyb3VwKCkge1xuICAgICAgICAvLyBBZGQgYW4gYXJyYXkgdG8gdGhlIHN0YWNrXG4gICAgICAgIHRoaXMuX3N0YWNrLnVuc2hpZnQoW10pO1xuICAgIH1cblxuICAgIHJlbW92ZUdyb3VwKCkge1xuICAgICAgICByZXR1cm4gdGhpcy5fc3RhY2suc2hpZnQoKTtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBQdXNoIGEgbG9nIGl0ZW0gb250byB0aGUgY3VycmVudCBncm91cFxuICAgICAqXG4gICAgICogQHBhcmFtIGxvZ0l0ZW0gb2JqZWN0XG4gICAgICovXG4gICAgcHVzaExvZyhsb2dJdGVtKSB7XG4gICAgICAgIHRoaXMuX3N0YWNrWzBdLnB1c2gobG9nSXRlbSk7XG4gICAgfVxuXG4gICAgaXNFbXB0eSgpIHtcbiAgICAgICAgcmV0dXJuIHRoaXMuX3N0YWNrLmxlbmd0aCA9PT0gMDtcbiAgICB9XG59XG4iXSwibWFwcGluZ3MiOiI7O0FBT0E7QUFBQTtBQUNBO0FBdUJBO0FBckJBO0FBRUE7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQU9BO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7OyIsInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///./src/GroupStack.ts\n");
-
-/***/ }),
-
-/***/ "./src/index.ts":
-/*!**********************!*\
-  !*** ./src/index.ts ***!
-  \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar ChronicleConsole_1 = __webpack_require__(/*! ./ChronicleConsole */ \"./src/ChronicleConsole.ts\");\nvar ArgHelpers_1 = __webpack_require__(/*! ./ArgHelpers */ \"./src/ArgHelpers.ts\");\nvar EnvironmentParser_1 = __webpack_require__(/*! ./EnvironmentParser */ \"./src/EnvironmentParser.ts\");\nvar GroupStack_1 = __webpack_require__(/*! ./GroupStack */ \"./src/GroupStack.ts\");\n(function (global, factory) {\n    var appName = \"ChronicleConsole\";\n    if (typeof window === \"object\") {\n        window[appName] = factory();\n    }\n    else if (true) {\n        module.exports = factory();\n    }\n    else {}\n})(this, function () {\n    var argHelpers = new ArgHelpers_1.default();\n    var environmentParser = new EnvironmentParser_1.default();\n    var groupStack = new GroupStack_1.default();\n    return new ChronicleConsole_1.default(argHelpers, environmentParser, groupStack);\n});\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9zcmMvaW5kZXgudHMuanMiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8vLi9zcmMvaW5kZXgudHM/ZmZiNCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQ2hyb25pY2xlQ29uc29sZSBmcm9tIFwiLi9DaHJvbmljbGVDb25zb2xlXCI7XG5pbXBvcnQgQXJnSGVscGVycyBmcm9tIFwiLi9BcmdIZWxwZXJzXCI7XG5pbXBvcnQgRW52aXJvbm1lbnRQYXJzZXIgZnJvbSBcIi4vRW52aXJvbm1lbnRQYXJzZXJcIjtcbmltcG9ydCBHcm91cFN0YWNrIGZyb20gXCIuL0dyb3VwU3RhY2tcIjtcbi8vLyA8cmVmZXJlbmNlIHR5cGVzPVwicmVxdWlyZWpzXCIgLz5cbi8vLyA8cmVmZXJlbmNlIHR5cGVzPVwibm9kZVwiIC8+XG5cbi8qKlxuICogQ2hyb25pY2xlQ29uc29sZVxuICovXG4oZnVuY3Rpb24oZ2xvYmFsLCBmYWN0b3J5KSB7XG4gICAgdmFyIGFwcE5hbWUgPSBcIkNocm9uaWNsZUNvbnNvbGVcIjtcbiAgICBpZiAodHlwZW9mIHdpbmRvdyA9PT0gXCJvYmplY3RcIikge1xuICAgICAgICB3aW5kb3dbYXBwTmFtZV0gPSBmYWN0b3J5KCk7XG4gICAgfSBlbHNlIGlmICh0eXBlb2YgZXhwb3J0cyA9PT0gXCJvYmplY3RcIiAmJiB0eXBlb2YgbW9kdWxlID09PSBcIm9iamVjdFwiKSB7XG4gICAgICAgIG1vZHVsZS5leHBvcnRzID0gZmFjdG9yeSgpO1xuICAgIH0gZWxzZSBpZiAodHlwZW9mIGRlZmluZSA9PT0gXCJmdW5jdGlvblwiICYmIGRlZmluZS5hbWQpIHtcbiAgICAgICAgZGVmaW5lKGFwcE5hbWUsIFtdLCBmYWN0b3J5KTtcbiAgICB9IGVsc2UgaWYgKHR5cGVvZiBleHBvcnRzID09PSBcIm9iamVjdFwiKSB7XG4gICAgICAgIGV4cG9ydHNbYXBwTmFtZV0gPSBmYWN0b3J5KCk7XG4gICAgfSBlbHNlIHtcbiAgICAgICAgZ2xvYmFsW2FwcE5hbWVdID0gZmFjdG9yeSgpO1xuICAgIH1cbn0pKHRoaXMsIGZ1bmN0aW9uKCkge1xuICAgIGNvbnN0IGFyZ0hlbHBlcnMgPSBuZXcgQXJnSGVscGVycygpO1xuICAgIGNvbnN0IGVudmlyb25tZW50UGFyc2VyID0gbmV3IEVudmlyb25tZW50UGFyc2VyKCk7XG4gICAgY29uc3QgZ3JvdXBTdGFjayA9IG5ldyBHcm91cFN0YWNrKCk7XG4gICAgcmV0dXJuIG5ldyBDaHJvbmljbGVDb25zb2xlKGFyZ0hlbHBlcnMsIGVudmlyb25tZW50UGFyc2VyLCBncm91cFN0YWNrKTtcbn0pO1xuIl0sIm1hcHBpbmdzIjoiOztBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBT0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQ0E7QUFDQTtBQUFBLFdBTUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7Iiwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///./src/index.ts\n");
-
-/***/ })
-
-/******/ });
+})));
