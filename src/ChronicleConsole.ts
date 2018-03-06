@@ -21,14 +21,16 @@ export default class ChronicleConsole {
 
     private _argHelpers: ArgHelpers;
     private _environmentParser: EnvironmentParser;
+    private _groupStack: GroupStack;
 
     private _console = console;
     private _fetch: any;
     private _timers = Object.create(null);
 
-    constructor(argHelpers, environmentParser) {
+    constructor(argHelpers, environmentParser, groupStack) {
         this._argHelpers = argHelpers;
         this._environmentParser = environmentParser;
+        this._groupStack = groupStack;
     }
 
     init(config) {
@@ -107,12 +109,12 @@ export default class ChronicleConsole {
             data = data[0];
         }
 
-        if (GroupStack.isEmpty()) {
+        if (this._groupStack.isEmpty()) {
             return this._sendData(data, type);
         }
 
         // The zeroth element (head) holds the current group
-        GroupStack.pushLog({ log: data, type });
+        this._groupStack.pushLog({ log: data, type });
     }
 
     private _sendData(data, type) {
@@ -230,7 +232,7 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("group")) return true;
 
-        GroupStack.addGroup();
+        this._groupStack.addGroup();
     }
 
     groupCollapsed() {
@@ -239,7 +241,7 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("groupCollapsed")) return true;
 
-        GroupStack.addGroup();
+        this._groupStack.addGroup();
     }
 
     groupEnd() {
@@ -249,10 +251,10 @@ export default class ChronicleConsole {
         if (!this._shouldLog("group") && !this._shouldLog("groupCollapsed"))
             return true;
 
-        var head = GroupStack.removeGroup();
-        if (!GroupStack.isEmpty()) {
+        var head = this._groupStack.removeGroup();
+        if (!this._groupStack.isEmpty()) {
             // Put the finished group into the still active group
-            GroupStack.pushLog({ type: "group", log: head });
+            this._groupStack.pushLog({ type: "group", log: head });
         } else {
             return this._logIt([{ type: "group", log: head }], "group");
         }

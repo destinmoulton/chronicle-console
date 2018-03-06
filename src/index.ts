@@ -1,6 +1,7 @@
 import ChronicleConsole from "./ChronicleConsole";
 import ArgHelpers from "./ArgHelpers";
 import EnvironmentParser from "./EnvironmentParser";
+import GroupStack from "./GroupStack";
 /// <reference types="requirejs" />
 /// <reference types="node" />
 
@@ -23,5 +24,6 @@ import EnvironmentParser from "./EnvironmentParser";
 })(this, function() {
     const argHelpers = new ArgHelpers();
     const environmentParser = new EnvironmentParser();
-    return new ChronicleConsole(argHelpers, environmentParser);
+    const groupStack = new GroupStack();
+    return new ChronicleConsole(argHelpers, environmentParser, groupStack);
 });

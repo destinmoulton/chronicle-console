@@ -5,7 +5,7 @@
  * console.groupEnd() removes that set of logs from the stack
  */
 
-class GroupStack {
+export default class GroupStack {
     private _stack = [];
 
     addGroup() {
@@ -30,5 +30,3 @@ class GroupStack {
         return this._stack.length === 0;
     }
 }
-
-export default new GroupStack();
