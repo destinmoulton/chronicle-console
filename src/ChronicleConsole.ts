@@ -66,9 +66,10 @@ export default class ChronicleConsole {
             this._settings.env = window.navigator;
         }
 
-        if (typeof fetch !== "undefined") {
+        this._console.log(fetch);
+        if (typeof window !== "undefined") {
             // Define the local fetch method
-            this._fetch = fetch;
+            this._fetch = window.fetch.bind(window);
         } else {
             this._console.error(
                 "ChronicleConsole :: No fetch() method defined."
@@ -97,7 +98,6 @@ export default class ChronicleConsole {
     }
 
     private _logIt(data, type) {
-        this._console.log("_logIt called", data, type);
         if (!this._argHelpers.isArray(data) || data.length === 0) {
             // Only allow arrays
             return true;
@@ -118,7 +118,6 @@ export default class ChronicleConsole {
     }
 
     private _sendData(data, type) {
-        this._console.log("_sendData called");
         if (
             !this._settings.serverURL ||
             !this._settings.appName ||
@@ -150,7 +149,9 @@ export default class ChronicleConsole {
             }
         };
 
-        this._fetch(this._settings.serverURL, params);
+        this._fetch(this._settings.serverURL, params).catch(err =>
+            this._console.error(err)
+        );
 
         return true;
     }
