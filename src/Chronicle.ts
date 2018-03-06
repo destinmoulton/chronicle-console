@@ -8,7 +8,7 @@ import EnvironmentParser from "./EnvironmentParser";
 
 import * as Types from "./types";
 
-export default class ChronicleConsole {
+export default class Chronicle {
     private _settings: Types.ISettings = {
         serverURL: "",
         appName: "",
@@ -23,11 +23,22 @@ export default class ChronicleConsole {
     private _environmentParser: EnvironmentParser;
     private _groupStack: GroupStack;
 
+    private _global: any; // Either Window or global
     private _console = console;
     private _fetch: any;
     private _timers = Object.create(null);
 
     constructor(argHelpers, environmentParser, groupStack) {
+        console.log("ChronicleConsole :: constructor() RUNNING");
+
+        if (typeof window !== "undefined") {
+            this._global = window;
+        } else if (typeof global !== "undefined") {
+            this._global = global;
+        } else {
+            console.error("ChronicleConsole :: No global defined.");
+        }
+        //this._global = global;
         this._argHelpers = argHelpers;
         this._environmentParser = environmentParser;
         this._groupStack = groupStack;
@@ -37,8 +48,14 @@ export default class ChronicleConsole {
         this._settings.serverURL = config.server || "";
         this._settings.appName = config.app || "";
         this._settings.env = config.env || null; // The users environment info
-        this._settings.alsoConsole = config.toConsole || true; // Log to the console?
-        this._settings.globalize = config.globalize || true; // Overwrite the global/window console
+
+        if ("toConsole" in config) {
+            this._settings.alsoConsole = config.toConsole;
+        }
+
+        if ("globalize" in config) {
+            this._settings.globalize = config.globalize;
+        }
 
         // The methods that should be logged to the server
         this._settings.methodsToLog = config.methodsToLog || [
@@ -57,19 +74,17 @@ export default class ChronicleConsole {
             this._overwriteGlobalConsole();
         }
 
-        var windowIsAvailable =
-            typeof window !== "undefined" &&
-            typeof window.navigator === "object";
+        var navigatorIsAvailable = typeof this._global.navigator === "object";
 
-        if (!this._settings.env && windowIsAvailable) {
+        if (!this._settings.env && navigatorIsAvailable) {
             // Set the default to window navigator if available
-            this._settings.env = window.navigator;
+            this._settings.env = this._global.navigator;
         }
 
-        this._console.log(fetch);
-        if (typeof window !== "undefined") {
+        if (typeof this._global.fetch !== "undefined") {
             // Define the local fetch method
-            this._fetch = window.fetch.bind(window);
+            // bound to the global context
+            this._fetch = this._global.fetch.bind(this._global);
         } else {
             this._console.error(
                 "ChronicleConsole :: No fetch() method defined."
@@ -78,8 +93,9 @@ export default class ChronicleConsole {
     }
 
     private _overwriteGlobalConsole() {
-        if (typeof console !== "undefined") {
-            (<any>console) = this;
+        if (typeof this._global.console !== "undefined") {
+            //(<any>console) = this;
+            this._global.console = this;
         }
     }
 
