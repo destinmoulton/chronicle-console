@@ -100,7 +100,7 @@ export default class ChronicleConsole {
             data = data[0];
         }
 
-        if (GroupStack.isEmpty) {
+        if (GroupStack.isEmpty()) {
             return this._sendData(data, type);
         }
 
@@ -120,10 +120,7 @@ export default class ChronicleConsole {
             return false;
         }
 
-        var envInfo = {};
-        if (this._settings.env.userAgent) {
-            envInfo = Environment.collate(this._settings.env);
-        }
+        var envInfo = Environment.collate(this._settings.env);
 
         var trace = this._stackTrace(4);
 
