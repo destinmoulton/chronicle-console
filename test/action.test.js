@@ -11,7 +11,7 @@ const expect = chai.expect;
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
 // The Chronicle Console we are going to test.
-const ChronicleConsole = require("../dist/chronicleconsole");
+const chronicleConsole = require("../dist/chronicleconsole");
 
 // Some constants (for configuration)
 const SERVER = "http://testserver.com";
@@ -53,18 +53,20 @@ describe("console.action() ", () => {
         const config = {
             server: SERVER,
             app: APP,
-            clientInfo: {},
-            toConsole: true, // Regular console is enabled, though nothing should be added
-            globalConsole: consoleMock.create()
+            env: global.window.navigator,
+            toConsole: false, // Regular console is enabled, though nothing should be added
+            consoleObject: consoleMock.create(),
+            globalize: false
         };
-        ChronicleConsole.init(config);
+        chronicleConsole.init(config);
     });
 
     it("logs to the server NOT to the client console", () => {
-        ChronicleConsole.action("login", "Logindetails");
-        ChronicleConsole.action("click", "clickTarget");
+        chronicleConsole.action("login", "Logindetails");
+        chronicleConsole.action("click", "clickTarget");
 
         const history = consoleMock.history();
+
         expect(history)
             .to.be.an("array")
             .and.have.length(0);
