@@ -1,6 +1,6 @@
 import ChronicleConsole from "./ChronicleConsole";
-import Environment from "./Environment";
-import Helpers from "./Helpers";
+import ArgHelpers from "./ArgHelpers";
+import EnvironmentParser from "./EnvironmentParser";
 /// <reference types="requirejs" />
 /// <reference types="node" />
 
@@ -21,7 +21,7 @@ import Helpers from "./Helpers";
         global[appName] = factory();
     }
 })(this, function() {
-    const argHelpers = new Helpers();
-    const environmentParser = new Environment();
+    const argHelpers = new ArgHelpers();
+    const environmentParser = new EnvironmentParser();
     return new ChronicleConsole(argHelpers, environmentParser);
 });

@@ -3,9 +3,10 @@
  */
 
 import GroupStack from "./GroupStack";
-import Helpers from "./Helpers";
+import ArgHelpers from "./ArgHelpers";
+import EnvironmentParser from "./EnvironmentParser";
+
 import * as Types from "./types";
-import Environment from "./Environment";
 
 export default class ChronicleConsole {
     private _settings: Types.ISettings = {
@@ -18,8 +19,8 @@ export default class ChronicleConsole {
         customMethods: []
     };
 
-    private _helpers: Helpers;
-    private _environmentParser: Environment;
+    private _helpers: ArgHelpers;
+    private _environmentParser: EnvironmentParser;
 
     private _console = console;
     private _fetch: any;
