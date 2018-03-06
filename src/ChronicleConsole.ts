@@ -19,7 +19,7 @@ export default class ChronicleConsole {
         customMethods: []
     };
 
-    private _helpers: ArgHelpers;
+    private _argHelpers: ArgHelpers;
     private _environmentParser: EnvironmentParser;
 
     private _console = console;
@@ -27,7 +27,7 @@ export default class ChronicleConsole {
     private _timers = Object.create(null);
 
     constructor(argHelpers, environmentParser) {
-        this._helpers = argHelpers;
+        this._argHelpers = argHelpers;
         this._environmentParser = environmentParser;
     }
 
@@ -84,9 +84,9 @@ export default class ChronicleConsole {
         this._settings.customMethods.forEach(method => {
             if (typeof this[method] === "undefined") {
                 this[method] = function() {
-                    var args = this._helpers.argumentsToArray(arguments);
+                    var args = this._argHelpers.argumentsToArray(arguments);
                     if (args[0]) {
-                        var data = this._helpers.collateArguments(args);
+                        var data = this._argHelpers.collateArguments(args);
                         return this._logData(data, method);
                     }
                 };
@@ -95,19 +95,18 @@ export default class ChronicleConsole {
     }
 
     private _logIt(data, type) {
-        this._console.log("_logIt called");
-        if (this._helpers.isArray(data) || data.length === 0) {
+        this._console.log("_logIt called", data, type);
+        if (!this._argHelpers.isArray(data) || data.length === 0) {
             // Only allow arrays
             return true;
         }
 
-        this._console.log("_logIt between");
         if (data.length === 1) {
             // Don't log an array if there is only one
             // piece of data
             data = data[0];
         }
-        this._console.log("_logIt right before groupstack check");
+
         if (GroupStack.isEmpty()) {
             return this._sendData(data, type);
         }
@@ -190,9 +189,9 @@ export default class ChronicleConsole {
     action() {
         if (!this._shouldLog("action")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "action");
         }
     }
@@ -204,9 +203,9 @@ export default class ChronicleConsole {
         if (!this._shouldLog("assert")) return true;
 
         if (!assertion) {
-            var args = this._helpers.argumentsToArray(arguments);
+            var args = this._argHelpers.argumentsToArray(arguments);
             return this._logIt(
-                this._helpers.collateArguments(args.slice(1)),
+                this._argHelpers.collateArguments(args.slice(1)),
                 "assert"
             );
         }
@@ -218,9 +217,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("error")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "error");
         }
     }
@@ -265,9 +264,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("info")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "info");
         }
     }
@@ -278,9 +277,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("log")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "log");
         }
     }
@@ -291,9 +290,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("table")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "table");
         }
     }
@@ -328,10 +327,10 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("trace")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         var data = [];
         if (args[0]) {
-            data = this._helpers.collateArguments(args);
+            data = this._argHelpers.collateArguments(args);
         }
 
         data.push(this._stackTrace(2));
@@ -344,9 +343,9 @@ export default class ChronicleConsole {
 
         if (!this._shouldLog("warn")) return true;
 
-        var args = this._helpers.argumentsToArray(arguments);
+        var args = this._argHelpers.argumentsToArray(arguments);
         if (args[0]) {
-            var data = this._helpers.collateArguments(args);
+            var data = this._argHelpers.collateArguments(args);
             return this._logIt(data, "warn");
         }
     }
