@@ -7,7 +7,7 @@ import Helpers from "./Helpers";
 import * as Types from "./types";
 import Environment from "./Environment";
 
-export class ChronicleConsole {
+export default class ChronicleConsole {
     private _settings: Types.ISettings = {
         serverURL: "",
         appName: "",
@@ -22,9 +22,7 @@ export class ChronicleConsole {
     private _fetch: any;
     private _timers = Object.create(null);
 
-    constructor(config) {
-        this.init(config);
-    }
+    constructor() {}
 
     init(config) {
         this._settings.serverURL = config.server || "";
