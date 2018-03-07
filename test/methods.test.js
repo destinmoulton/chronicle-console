@@ -14,25 +14,19 @@ const chronicleConsole = require("../dist/chronicleconsole");
 const generateExpectedClient = require("./lib/generateExpectedClient");
 const { generateParamData } = require("./lib/generateExpectedFetchData");
 
-const METHODS = require("./data/methods");
+const TEST_METHODS = require("./data/testmethods");
+const TEST_MODES = require("./data/testmodes");
 
 // Some constants (for configuration)
-const SERVER = "http://testserver.com";
-const APP = "TestApp";
+const SERVER = "http://test.server.chronicle.logger.com";
+const APP = "MOCHA TEST - methods";
 const EXPECTED_HEADERS = { "Content-Type": "text/plain" };
 const EXPECTED_METHOD = "post";
 
-const MODES = [
-    { title: "console OFF, log OFF", consoleEnabled: false, logEnabled: false },
-    { title: "console OFF, log ON", consoleEnabled: false, logEnabled: true },
-    { title: "console ON, log OFF", consoleEnabled: true, logEnabled: false },
-    { title: "console ON, log ON", consoleEnabled: true, logEnabled: true }
-];
-
-describe("Chronicle Console Methods", () => {
-    MODES.forEach(mode => {
+describe("ChronicleConsole", () => {
+    TEST_MODES.forEach(mode => {
         describe(mode.title, () => {
-            METHODS.forEach(method => {
+            TEST_METHODS.forEach(method => {
                 describe(`console.${method.name}()`, () => {
                     let expectedClient = {};
                     beforeEach(() => {
