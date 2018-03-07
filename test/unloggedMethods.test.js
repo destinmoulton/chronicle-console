@@ -19,8 +19,7 @@ const UNLOGGED_METHODS = [
     "dir",
     "dirxml",
     "profile",
-    "profileEnd",
-    "timeStamp"
+    "profileEnd"
 ];
 
 // Just make sure args are being passed to the console methods
