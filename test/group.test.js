@@ -11,59 +11,72 @@ const expect = chai.expect;
 
 const generateExpectedClient = require("./lib/generateExpectedClient");
 
-const ChronicleConsole = require("../dist/chronicleconsole");
+const chronicleConsole = require("../dist/chronicleconsole");
 const DATA = require("./data/groupData");
+const TEST_MODES = require("./data/testmodes");
+
 const METHODS = DATA.METHODS;
 const TESTS = DATA.TESTS;
 
-const APP = "TEST GROUP APP";
-const SERVER = "https://servername.com";
+const APP = "MOCHA TEST - .group(), .groupEnd(), .groupCollapsed()";
+const SERVER = "http://test.server.chronicle.logger.com";
 const EXPECTED_HEADERS = { "Content-Type": "text/plain" };
 const EXPECTED_METHOD = "post";
 
-const CONSOLE_OPTIONS = [
-    { name: "DOES log to the console.", consoleEnabled: true },
-    {
-        name: "Does NOT log to the console.",
-        consoleEnabled: false
-    }
-];
-
-describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
-    CONSOLE_OPTIONS.forEach(consoleOption => {
+describe("ChronicleConsole - .group(), .groupEnd(), .groupCollapsed()", () => {
+    TEST_MODES.forEach(mode => {
         TESTS.forEach(test => {
-            describe("Logs trace to server", () => {
+            describe(mode.title, () => {
                 beforeEach(() => {
+                    // Monitor all POSTs
                     mockFetch.restore();
-                    mockFetch.post(SERVER, "*");
+                    mockFetch.post(SERVER, 200);
                     mockConsole.enabled(false);
                     mockConsole.historyClear();
 
                     // Build a mock for the window.navigator
-                    global.window = new MockBrowser().getWindow();
+                    mockWindow = new MockBrowser().getWindow();
+                    global.navigator = mockWindow.navigator;
+
+                    let methodsToLog = [];
+
+                    if (mode.logEnabled) {
+                        methodsToLog = [
+                            "group",
+                            "groupCollapsed",
+                            "groupEnd",
+                            "log",
+                            "info",
+                            "warn",
+                            "error",
+                            "table"
+                        ];
+                    }
 
                     const config = {
                         server: SERVER,
                         app: APP,
-                        toConsole: consoleOption.consoleEnabled,
-                        consoleObject: mockConsole.create()
+                        toConsole: mode.consoleEnabled,
+                        consoleObject: mockConsole.create(),
+                        globalize: false,
+                        methodsToLog
                     };
 
-                    ChronicleConsole.init(config);
+                    chronicleConsole.init(config);
                 });
 
-                it(consoleOption.name + " - " + test.title, () => {
+                it(test.title, () => {
                     let numMethodsCalled = 0;
                     test.sequence.forEach(method => {
                         if (method === "group") {
-                            ChronicleConsole.group();
+                            chronicleConsole.group();
                         } else if (method === "groupCollapsed") {
-                            ChronicleConsole.groupCollapsed();
+                            chronicleConsole.groupCollapsed();
                         } else if (method === "groupEnd") {
-                            ChronicleConsole.groupEnd();
+                            chronicleConsole.groupEnd();
                         } else {
-                            ChronicleConsole[method].apply(
-                                this,
+                            chronicleConsole[method].apply(
+                                chronicleConsole,
                                 METHODS[method]
                             );
                         }
@@ -72,7 +85,7 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                     });
 
                     const history = mockConsole.history();
-                    if (consoleOption.consoleEnabled) {
+                    if (mode.consoleEnabled) {
                         expect(history)
                             .to.be.an("array")
                             .and.have.length(numMethodsCalled);
@@ -84,23 +97,36 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
 
                     const fetchedCalls = mockFetch.calls();
 
-                    expect(fetchedCalls, "Mocked fetch failed.")
-                        .to.be.an("array")
-                        .that.is.length(1);
+                    if (!mode.logEnabled) {
+                        expect(fetchedCalls, "Mocked fetch failed.").to.be.an(
+                            "array"
+                        ).that.is.empty;
+                    } else {
+                        expect(fetchedCalls, "Mocked fetch failed.")
+                            .to.be.an("array")
+                            .that.is.length(1);
 
-                    fetchedCalls.forEach((call, index) => {
-                        const details = call[1];
-                        const body = JSON.parse(details.body);
-                        expect(call[0]).to.equal(SERVER);
-                        expect(details.method).to.equal(EXPECTED_METHOD);
-                        expect(details.headers).to.deep.equal(EXPECTED_HEADERS);
-                        expect(body.app).to.equal(APP);
-                        expect(body.type).to.equal("group");
-                        expect(body.data).to.deep.equal(test.expectedData);
-                        expect(body.client).to.deep.equal(
-                            generateExpectedClient(global.window.navigator)
-                        );
-                    });
+                        fetchedCalls.forEach((call, index) => {
+                            const res = call[1];
+                            const {
+                                app,
+                                client,
+                                type,
+                                data,
+                                trace
+                            } = JSON.parse(res.body);
+                            expect(call[0]).to.equal(SERVER);
+                            expect(res.method).to.equal(EXPECTED_METHOD);
+                            expect(res.headers).to.deep.equal(EXPECTED_HEADERS);
+                            expect(app).to.equal(APP);
+                            expect(type).to.equal("group");
+                            expect(data).to.deep.equal([test.expectedData]);
+                            expect(client).to.deep.equal(
+                                generateExpectedClient(global.navigator)
+                            );
+                            expect(trace).to.be.length.gt(4);
+                        });
+                    }
                 });
             });
         });
