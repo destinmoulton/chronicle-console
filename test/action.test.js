@@ -1,8 +1,8 @@
 const fs = require("fs");
 
 const chai = require("chai");
-const consoleMock = require("console-mock");
-const fetchMock = require("fetch-mock");
+const mockConsole = require("console-mock");
+const mockFetch = require("fetch-mock");
 const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const nodeFetch = require("node-fetch");
 
@@ -37,25 +37,25 @@ let EXPECTED_BODIES = [
 describe("console.action() ", () => {
     beforeEach(() => {
         // Monitor all POSTs
-        fetchMock.restore();
-        fetchMock.post(SERVER, 200);
-        consoleMock.enabled(false);
-        consoleMock.historyClear();
+        mockFetch.restore();
+        mockFetch.post(SERVER, 200);
+        mockConsole.enabled(false);
+        mockConsole.historyClear();
 
         // Build a mock for the window.navigator
-        global.window = new MockBrowser().getWindow();
+        mockWindow = new MockBrowser().getWindow();
+        global.navigator = mockWindow.navigator;
 
         // Add the window navigator to the expected info
-        const expectedClient = generateExpectedClient(global.window.navigator);
+        const expectedClient = generateExpectedClient(global.navigator);
         EXPECTED_BODIES[0].client = expectedClient;
         EXPECTED_BODIES[1].client = expectedClient;
 
         const config = {
             server: SERVER,
             app: APP,
-            env: global.window.navigator,
             toConsole: false, // Regular console is enabled, though nothing should be added
-            consoleObject: consoleMock.create(),
+            consoleObject: mockConsole.create(),
             globalize: false
         };
         chronicleConsole.init(config);
@@ -65,13 +65,13 @@ describe("console.action() ", () => {
         chronicleConsole.action("login", "Logindetails");
         chronicleConsole.action("click", "clickTarget");
 
-        const history = consoleMock.history();
+        const history = mockConsole.history();
 
         expect(history)
             .to.be.an("array")
             .and.have.length(0);
 
-        const fetchedCalls = fetchMock.calls();
+        const fetchedCalls = mockFetch.calls();
 
         expect(fetchedCalls)
             .to.be.an("array")
@@ -79,9 +79,14 @@ describe("console.action() ", () => {
 
         fetchedCalls.forEach((call, idx) => {
             const pkg = call[1];
+            const { app, client, type, data, trace } = JSON.parse(pkg.body);
             expect(pkg.method).to.equal(EXPECTED_METHOD);
             expect(pkg.headers).to.deep.equal(EXPECTED_HEADERS);
-            expect(pkg.body).to.equal(JSON.stringify(EXPECTED_BODIES[idx]));
+            expect(app).to.equal(EXPECTED_BODIES[idx].app);
+            expect(client).to.deep.equal(EXPECTED_BODIES[idx].client);
+            expect(type).to.equal(EXPECTED_BODIES[idx].type);
+            expect(data).to.deep.equal(EXPECTED_BODIES[idx].data);
+            expect(trace).to.be.length.gt(4);
         });
     });
 });
