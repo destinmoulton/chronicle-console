@@ -29,8 +29,6 @@ export default class Chronicle {
     private _timers = Object.create(null);
 
     constructor(argHelpers, environmentParser, groupStack) {
-        console.log("ChronicleConsole :: constructor() RUNNING");
-
         if (typeof window !== "undefined") {
             this._global = window;
         } else if (typeof global !== "undefined") {
