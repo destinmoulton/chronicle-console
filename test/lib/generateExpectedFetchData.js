@@ -50,4 +50,4 @@ function generateExpectedFetchBody(app, logtype, navigator, params) {
     };
 }
 
-module.exports = generateExpectedFetchBody;
+module.exports = { generateParamData };
