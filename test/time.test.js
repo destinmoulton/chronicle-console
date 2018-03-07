@@ -11,8 +11,8 @@ const ChronicleConsole = require("../dist/chronicleconsole");
 
 const TEST_MODES = require("./data/testmodes");
 
-const SERVER = "http://serverapi.org/";
-const APP = "Time Test";
+const SERVER = "http://test.server.chronicle.logger.com";
+const APP = "MOCHA TEST - .time() & .timeEnd()";
 const EXPECTED_HEADERS = { "Content-Type": "text/plain" };
 const EXPECTED_METHOD = "post";
 
