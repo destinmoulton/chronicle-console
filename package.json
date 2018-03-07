@@ -11,12 +11,9 @@
         "compile": "rollup -c --watch",
         "test": "clear && mocha",
         "test:methods": "clear && mocha test/methods.test.js",
-        "test:action": "clear && mocha test/action.test.js",
-        "test:basic": "clear && mocha test/basicMethods.test.js",
         "test:group": "clear && mocha test/group.test.js",
         "test:trace": "clear && mocha test/trace.test.js",
-        "test:time": "clear && mocha test/time.test.js",
-        "test:unlogged": "clear && mocha test/unloggedMethods.test.js"
+        "test:time": "clear && mocha test/time.test.js"
     },
     "devDependencies": {
         "@types/node": "^9.4.6",
