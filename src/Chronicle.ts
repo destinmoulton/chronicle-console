@@ -119,12 +119,6 @@ export default class Chronicle {
             return true;
         }
 
-        if (data.length === 1) {
-            // Don't log an array if there is only one
-            // piece of data
-            data = data[0];
-        }
-
         if (this._groupStack.isEmpty()) {
             return this._sendData(data, type);
         }
