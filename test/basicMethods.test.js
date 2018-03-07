@@ -46,7 +46,8 @@ describe("ChronicleLogger Basic Methods", () => {
                             fetchMock.post(SERVER, 200);
 
                             // Build a mock for the window.navigator
-                            global.window = new MockBrowser().getWindow();
+                            mockWindow = new MockBrowser().getWindow();
+                            global.navigator = mockWindow.navigator;
 
                             let config = {
                                 server: SERVER,
