@@ -10,6 +10,7 @@
         "build": "webpack --config webpack.config.js -d --watch",
         "compile": "rollup -c --watch",
         "test": "clear && mocha",
+        "test:methods": "clear && mocha test/methods.test.js",
         "test:action": "clear && mocha test/action.test.js",
         "test:basic": "clear && mocha test/basicMethods.test.js",
         "test:group": "clear && mocha test/group.test.js",
