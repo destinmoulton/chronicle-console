@@ -86,9 +86,6 @@ var Chronicle = (function () {
         if (!this._argHelpers.isArray(data) || data.length === 0) {
             return true;
         }
-        if (data.length === 1) {
-            data = data[0];
-        }
         if (this._groupStack.isEmpty()) {
             return this._sendData(data, type);
         }
