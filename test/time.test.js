@@ -1,6 +1,6 @@
 const chai = require("chai");
-const consoleMock = require("console-mock");
-const fetchMock = require("fetch-mock");
+const mockConsole = require("console-mock");
+const mockFetch = require("fetch-mock");
 const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
@@ -31,10 +31,10 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
     TESTS.forEach(test => {
         beforeEach(() => {
             // Monitor all POSTs
-            fetchMock.restore();
-            fetchMock.post(SERVER, 200);
-            consoleMock.enabled(false);
-            consoleMock.historyClear();
+            mockFetch.restore();
+            mockFetch.post(SERVER, 200);
+            mockConsole.enabled(false);
+            mockConsole.historyClear();
 
             // Build a mock for the window.navigator
             global.window = new MockBrowser().getWindow();
@@ -43,7 +43,7 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 server: SERVER,
                 app: APP,
                 toConsole: true,
-                consoleObject: consoleMock.create()
+                consoleObject: mockConsole.create()
             };
 
             ChronicleConsole.init(config);
@@ -54,7 +54,7 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 ChronicleConsole.timeEnd(timer);
             });
 
-            const history = consoleMock.history();
+            const history = mockConsole.history();
             expect(history)
                 .to.be.an("array")
                 .and.have.length(test.timers.length * 2);
@@ -67,7 +67,7 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 expect(history[ind + 1].arguments[0]).to.be.equal(timer);
             });
 
-            const fetchedCalls = fetchMock.calls();
+            const fetchedCalls = mockFetch.calls();
 
             expect(fetchedCalls, "Mocked fetch failed.")
                 .to.be.an("array")
@@ -88,7 +88,7 @@ describe("ChronicleConsole time/timeEnd Methods", () => {
                 );
             });
 
-            fetchMock.reset();
+            mockFetch.reset();
         });
     });
 });

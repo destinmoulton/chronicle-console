@@ -1,5 +1,5 @@
 const chai = require("chai");
-const fetchMock = require("fetch-mock");
+const mockFetch = require("fetch-mock");
 
 const expect = chai.expect;
 
@@ -29,8 +29,8 @@ describe("Unlogged Console Methods", () => {
         describe("console." + method, () => {
             beforeEach(() => {
                 // Monitor all POSTs
-                fetchMock.restore();
-                fetchMock.post(SERVER, 200);
+                mockFetch.restore();
+                mockFetch.post(SERVER, 200);
                 mockConsole.historyClear();
                 const config = {
                     server: SERVER,
@@ -52,7 +52,7 @@ describe("Unlogged Console Methods", () => {
                     .and.have.length(1);
                 expect(history[0].method).to.be.equal(method);
 
-                const fetchedCalls = fetchMock.calls();
+                const fetchedCalls = mockFetch.calls();
 
                 expect(fetchedCalls, "Mocked fetch failed.")
                     .to.be.an("array")

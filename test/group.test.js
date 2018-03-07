@@ -3,8 +3,8 @@
  */
 
 const chai = require("chai");
-const consoleMock = require("console-mock");
-const fetchMock = require("fetch-mock");
+const mockConsole = require("console-mock");
+const mockFetch = require("fetch-mock");
 const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
@@ -34,10 +34,10 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
         TESTS.forEach(test => {
             describe("Logs trace to server", () => {
                 beforeEach(() => {
-                    fetchMock.restore();
-                    fetchMock.post(SERVER, "*");
-                    consoleMock.enabled(false);
-                    consoleMock.historyClear();
+                    mockFetch.restore();
+                    mockFetch.post(SERVER, "*");
+                    mockConsole.enabled(false);
+                    mockConsole.historyClear();
 
                     // Build a mock for the window.navigator
                     global.window = new MockBrowser().getWindow();
@@ -46,7 +46,7 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                         server: SERVER,
                         app: APP,
                         toConsole: consoleOption.consoleEnabled,
-                        consoleObject: consoleMock.create()
+                        consoleObject: mockConsole.create()
                     };
 
                     ChronicleConsole.init(config);
@@ -71,7 +71,7 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                         numMethodsCalled++;
                     });
 
-                    const history = consoleMock.history();
+                    const history = mockConsole.history();
                     if (consoleOption.consoleEnabled) {
                         expect(history)
                             .to.be.an("array")
@@ -82,7 +82,7 @@ describe("ChronicleLogger .group(), .groupEnd(), .groupCollapsed()", () => {
                             .and.have.length(0);
                     }
 
-                    const fetchedCalls = fetchMock.calls();
+                    const fetchedCalls = mockFetch.calls();
 
                     expect(fetchedCalls, "Mocked fetch failed.")
                         .to.be.an("array")

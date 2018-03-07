@@ -1,6 +1,6 @@
 const chai = require("chai");
-const consoleMock = require("console-mock");
-const fetchMock = require("fetch-mock");
+const mockConsole = require("console-mock");
+const mockFetch = require("fetch-mock");
 const MockBrowser = require("mock-browser").mocks.MockBrowser;
 
 const expect = chai.expect;
@@ -26,10 +26,10 @@ describe("ChronicleLogger .trace()", () => {
     TESTS.forEach(test => {
         describe("Logs trace to server", () => {
             beforeEach(() => {
-                fetchMock.restore();
-                fetchMock.post(SERVER, "*");
-                consoleMock.enabled(false);
-                consoleMock.historyClear();
+                mockFetch.restore();
+                mockFetch.post(SERVER, "*");
+                mockConsole.enabled(false);
+                mockConsole.historyClear();
 
                 // Build a mock for the window.navigator
                 global.window = new MockBrowser().getWindow();
@@ -39,7 +39,7 @@ describe("ChronicleLogger .trace()", () => {
                     app: APP,
                     clientInfo: {},
                     toConsole: test.consoleEnabled,
-                    globalConsole: consoleMock.create()
+                    globalConsole: mockConsole.create()
                 };
 
                 chronicleLogger.init(config);
@@ -48,7 +48,7 @@ describe("ChronicleLogger .trace()", () => {
             it(test.name, () => {
                 chronicleLogger.trace();
 
-                const history = consoleMock.history();
+                const history = mockConsole.history();
                 if (test.consoleEnabled) {
                     expect(history)
                         .to.be.an("array")
@@ -59,7 +59,7 @@ describe("ChronicleLogger .trace()", () => {
                         .and.have.length(0);
                 }
 
-                const fetchedCalls = fetchMock.calls();
+                const fetchedCalls = mockFetch.calls();
 
                 expect(fetchedCalls, "Mocked fetch failed.")
                     .to.be.an("array")

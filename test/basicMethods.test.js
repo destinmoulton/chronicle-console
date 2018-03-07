@@ -1,8 +1,8 @@
 const fs = require("fs");
 
 const chai = require("chai");
-const consoleMock = require("console-mock");
-const fetchMock = require("fetch-mock");
+const mockConsole = require("console-mock");
+const mockFetch = require("fetch-mock");
 const MockBrowser = require("mock-browser").mocks.MockBrowser;
 const nodeFetch = require("node-fetch");
 
@@ -42,8 +42,8 @@ describe("ChronicleLogger Basic Methods", () => {
                     describe(testSet.name + "  ." + logtype + "()", () => {
                         beforeEach(() => {
                             // Monitor all POSTs
-                            fetchMock.restore();
-                            fetchMock.post(SERVER, 200);
+                            mockFetch.restore();
+                            mockFetch.post(SERVER, 200);
 
                             // Build a mock for the window.navigator
                             mockWindow = new MockBrowser().getWindow();
@@ -55,16 +55,16 @@ describe("ChronicleLogger Basic Methods", () => {
                             };
 
                             if (optionState.consoleIsOn) {
-                                consoleMock.enabled(false);
-                                consoleMock.historyClear();
+                                mockConsole.enabled(false);
+                                mockConsole.historyClear();
                                 config["toConsole"] = true;
-                                config["consoleObject"] = consoleMock.create();
+                                config["consoleObject"] = mockConsole.create();
                             }
                             ChronicleConsole.init(config);
                         });
 
                         afterEach(() => {
-                            const fetchedCalls = fetchMock.calls();
+                            const fetchedCalls = mockFetch.calls();
 
                             if (testSet.shouldLogToServer) {
                                 expect(
@@ -79,9 +79,9 @@ describe("ChronicleLogger Basic Methods", () => {
                             }
 
                             if (testSet.shouldLogToServer) {
-                                expect(fetchMock.lastUrl()).to.equal(SERVER);
+                                expect(mockFetch.lastUrl()).to.equal(SERVER);
 
-                                const request = fetchMock.lastOptions();
+                                const request = mockFetch.lastOptions();
                                 expect(request.method).to.equal(
                                     EXPECTED_METHOD
                                 );
@@ -102,7 +102,7 @@ describe("ChronicleLogger Basic Methods", () => {
                             }
 
                             if (optionState.consoleIsOn) {
-                                const history = consoleMock.history();
+                                const history = mockConsole.history();
                                 expect(history, "Console history is incorrect!")
                                     .to.be.an("array")
                                     .of.length(1);
