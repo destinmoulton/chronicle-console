@@ -18,16 +18,12 @@ function isParamValid(param) {
 }
 
 function generateParamData(params) {
-    let data = null;
-    if (params.length > 1) {
-        data = [];
-        for (let i = 0; i < params.length; i++) {
-            if (isParamValid(params[i])) {
-                data.push(JSON.parse(JSON.stringify(params[i])));
-            }
+    let data = [];
+
+    for (let i = 0; i < params.length; i++) {
+        if (isParamValid(params[i])) {
+            data.push(JSON.parse(JSON.stringify(params[i])));
         }
-    } else {
-        data = JSON.parse(JSON.stringify(params[0]));
     }
 
     return data;
