@@ -17,7 +17,6 @@ var Chronicle = (function () {
         };
         this._console = console;
         this._timers = Object.create(null);
-        console.log("ChronicleConsole :: constructor() RUNNING");
         if (typeof window !== "undefined") {
             this._global = window;
         }
