@@ -7,13 +7,12 @@
     "author": "Destin Moulton <destin.moulton@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "build": "webpack --config webpack.config.js -d --watch",
         "compile": "rollup -c --watch",
         "test": "clear && mocha",
-        "test:methods": "clear && mocha test/methods.test.js",
         "test:group": "clear && mocha test/group.test.js",
-        "test:trace": "clear && mocha test/trace.test.js",
-        "test:time": "clear && mocha test/time.test.js"
+        "test:methods": "clear && mocha test/methods.test.js",
+        "test:time": "clear && mocha test/time.test.js",
+        "test:trace": "clear && mocha test/trace.test.js"
     },
     "devDependencies": {
         "@types/node": "^9.4.6",
