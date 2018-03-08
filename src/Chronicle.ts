@@ -186,11 +186,17 @@ export default class Chronicle {
 
     // From https://stackoverflow.com/a/635852/470577
     private _stackTrace(depth) {
-        var stackString = new Error().stack;
+        const stackString = new Error().stack;
         // Remove the trace lines for this and trace() call
         // from depth to -1 (the split adds an extra empty element)
-        var trace = stackString.split("\n").slice(depth, -1);
-        return trace;
+        const traces = stackString.split("\n").slice(depth, -1);
+
+        const cleanTraces = traces.map(trace => {
+            // Clean the "    at " from the beginning of the traces
+            return trace.replace(/^\s*at\s*/, "");
+        });
+
+        return cleanTraces;
     }
 
     /**

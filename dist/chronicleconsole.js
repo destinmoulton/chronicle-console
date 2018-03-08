@@ -137,8 +137,11 @@ var Chronicle = (function () {
     };
     Chronicle.prototype._stackTrace = function (depth) {
         var stackString = new Error().stack;
-        var trace = stackString.split("\n").slice(depth, -1);
-        return trace;
+        var traces = stackString.split("\n").slice(depth, -1);
+        var cleanTraces = traces.map(function (trace) {
+            return trace.replace(/^\s*at\s*/, "");
+        });
+        return cleanTraces;
     };
     Chronicle.prototype.action = function () {
         if (!this._shouldLog("action"))
