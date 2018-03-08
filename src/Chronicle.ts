@@ -8,6 +8,8 @@ import EnvironmentParser from "./EnvironmentParser";
 
 import * as Types from "./types";
 
+const DEFAULT_METHODS_TO_LOG = ["action", "assert", "error", "warn"];
+
 export default class Chronicle {
     private _settings: Types.ISettings = {
         serverURL: "",
@@ -15,7 +17,7 @@ export default class Chronicle {
         env: null,
         alsoConsole: true,
         globalize: true,
-        methodsToLog: ["action", "error", "warn"],
+        methodsToLog: DEFAULT_METHODS_TO_LOG,
         customMethods: []
     };
 
@@ -56,11 +58,8 @@ export default class Chronicle {
         }
 
         // The methods that should be logged to the server
-        this._settings.methodsToLog = config.methodsToLog || [
-            "action",
-            "error",
-            "warn"
-        ];
+        this._settings.methodsToLog =
+            config.methodsToLog || DEFAULT_METHODS_TO_LOG;
 
         // Custom logging methods
         this._settings.customMethods = config.customMethods || [];

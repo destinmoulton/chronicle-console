@@ -4,6 +4,7 @@
 	(global.ChronicleConsole = factory());
 }(this, (function () { 'use strict';
 
+var DEFAULT_METHODS_TO_LOG = ["action", "assert", "error", "warn"];
 var Chronicle = (function () {
     function Chronicle(argHelpers, environmentParser, groupStack) {
         this._settings = {
@@ -12,7 +13,7 @@ var Chronicle = (function () {
             env: null,
             alsoConsole: true,
             globalize: true,
-            methodsToLog: ["action", "error", "warn"],
+            methodsToLog: DEFAULT_METHODS_TO_LOG,
             customMethods: []
         };
         this._console = console;
@@ -40,11 +41,8 @@ var Chronicle = (function () {
         if ("globalize" in config) {
             this._settings.globalize = config.globalize;
         }
-        this._settings.methodsToLog = config.methodsToLog || [
-            "action",
-            "error",
-            "warn"
-        ];
+        this._settings.methodsToLog =
+            config.methodsToLog || DEFAULT_METHODS_TO_LOG;
         this._settings.customMethods = config.customMethods || [];
         this._registerCustomMethods();
         this._console = config.consoleObject || console;
@@ -356,7 +354,6 @@ var ArgHelpers = (function () {
     };
     return ArgHelpers;
 }());
-//# sourceMappingURL=ArgHelpers.js.map
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -429,7 +426,6 @@ var EnvironmentParser = (function () {
     };
     return EnvironmentParser;
 }());
-//# sourceMappingURL=EnvironmentParser.js.map
 
 var GroupStack = (function () {
     function GroupStack() {
@@ -449,13 +445,11 @@ var GroupStack = (function () {
     };
     return GroupStack;
 }());
-//# sourceMappingURL=GroupStack.js.map
 
 var argHelpers = new ArgHelpers();
 var environmentParser = new EnvironmentParser();
 var groupStack = new GroupStack();
 var index = new Chronicle(argHelpers, environmentParser, groupStack);
-//# sourceMappingURL=index.js.map
 
 return index;
 
