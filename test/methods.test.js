@@ -49,13 +49,19 @@ describe("ChronicleConsole", () => {
                             ? [method.name]
                             : [];
 
+                        let customMethods = [];
+                        if (method.isCustom) {
+                            customMethods.push(method.name);
+                        }
+
                         const config = {
                             server: SERVER,
                             app: APP,
                             toConsole: mode.consoleEnabled,
                             consoleObject: mockConsole.create(),
                             globalize: false,
-                            methodsToLog
+                            methodsToLog,
+                            customMethods
                         };
                         chronicleConsole.init(config);
                     });
@@ -89,7 +95,7 @@ describe("ChronicleConsole", () => {
                         }
 
                         const fetchedCalls = mockFetch.calls();
-                        if (!mode.logEnabled) {
+                        if (!mode.logEnabled && !method.isCustom) {
                             expect(fetchedCalls)
                                 .to.be.an("array")
                                 .of.length(0);
