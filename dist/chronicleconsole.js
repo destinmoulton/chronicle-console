@@ -68,14 +68,14 @@ var Chronicle = (function () {
         }
     };
     Chronicle.prototype._registerCustomMethods = function () {
-        var _this = this;
+        var self = this;
         this._settings.customMethods.forEach(function (method) {
-            if (typeof _this[method] === "undefined") {
-                _this[method] = function () {
-                    var args = this._argHelpers.argumentsToArray(arguments);
+            if (typeof self[method] === "undefined") {
+                self[method] = function () {
+                    var args = self._argHelpers.argumentsToArray(arguments);
                     if (args[0]) {
-                        var data = this._argHelpers.collateArguments(args);
-                        return this._logData(data, method);
+                        var data = self._argHelpers.collateArguments(args);
+                        return self._logIt(data, method);
                     }
                 };
             }

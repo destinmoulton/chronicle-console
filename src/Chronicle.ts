@@ -98,13 +98,14 @@ export default class Chronicle {
     }
 
     private _registerCustomMethods() {
+        const self = this;
         this._settings.customMethods.forEach(method => {
-            if (typeof this[method] === "undefined") {
-                this[method] = function() {
-                    var args = this._argHelpers.argumentsToArray(arguments);
+            if (typeof self[method] === "undefined") {
+                self[method] = function() {
+                    var args = self._argHelpers.argumentsToArray(arguments);
                     if (args[0]) {
-                        var data = this._argHelpers.collateArguments(args);
-                        return this._logData(data, method);
+                        var data = self._argHelpers.collateArguments(args);
+                        return self._logIt(data, method);
                     }
                 };
             }
