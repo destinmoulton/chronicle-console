@@ -23,16 +23,16 @@ Along with the data (strings, numbers, arrays, or objects), a stack trace is tak
 
 ### Configuration
 
-| Option          | Required | Description                                                                     | Default                     |
-| --------------- | -------- | ------------------------------------------------------------------------------- | --------------------------- |
-| `server`        | \*       | The URL of the Chronicle Logger.                                                |                             |
-| `app`           | \*       | The name of this app.                                                           |                             |
-| `env`           |          | Environment information.                                                        | `window.navigator`          |
-| `toConsole`     |          | Show messages in regular console.                                               | `true`                      |
-| `globalize`     |          | Overwrite the global console object.                                            | `false`                     |
-| `consoleObject` |          | A console object.<br>Useful for testing/mocking.                                | `console`                   |
-| `methodsToLog`  |          | Array of methods that are logged.<br>Does **not** effect `toConsole` option.    | `["action","error","warn"]` |
-| `customMethods` |          | Array of strings for custom logging methods.<br>Do not include in methodsToLog. | `[]`                        |
+| Option          | Required | Description                                                                     | Default                              |
+| --------------- | -------- | ------------------------------------------------------------------------------- | ------------------------------------ |
+| `server`        | \*       | The URL of the Chronicle Logger.                                                |                                      |
+| `app`           | \*       | The name of this app.                                                           |                                      |
+| `env`           |          | Environment information.                                                        | `window.navigator`                   |
+| `toConsole`     |          | Show messages in regular console.                                               | `true`                               |
+| `globalize`     |          | Overwrite the global console object.                                            | `false`                              |
+| `consoleObject` |          | A console object.<br>Useful for testing/mocking.                                | `console`                            |
+| `methodsToLog`  |          | Array of methods that are logged.<br>Does **not** effect `toConsole` option.    | `["action","error","warn","assert"]` |
+| `customMethods` |          | Array of strings for custom logging methods.<br>Do not include in methodsToLog. | `[]`                                 |
 
 ### methodsToLog
 
