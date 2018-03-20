@@ -63,6 +63,46 @@ console.crash("Frontend has crashed");
 // Includes a stack trace
 ```
 
+### React Native Device Info
+
+The npm package [react-native-device-info](https://github.com/rebeccahughes/react-native-device-info) can be linked into a react application, giving access to a variety of device info.
+
+```
+import DeviceInfo from "react-native-device-info";
+
+const reactEnv = {
+    appName: DeviceInfo.getApplicationName(),
+    userAgent: DeviceInfo.getUserAgent(),
+    brand: DeviceInfo.getBrand(),
+    buildNumber: DeviceInfo.getBuildNumber(),
+    bundleId: DeviceInfo.getBundleId(),
+    deviceCountry: DeviceInfo.getDeviceCountry(),
+    deviceId: DeviceInfo.getDeviceId(),
+    deviceLocale: DeviceInfo.getDeviceLocale(),
+    deviceName: DeviceInfo.getDeviceName(),
+    manufacturer: DeviceInfo.getManufacturer(),
+    model: DeviceInfo.getModel(),
+    systemName: DeviceInfo.getSystemName(),
+    systemVersion: DeviceInfo.getSystemVersion(),
+    timezone: DeviceInfo.getVersion(),
+    uniqueId: DeviceInfo.getUniqueID(),
+    version: DeviceInfo.getVersion(),
+    isEmulator: DeviceInfo.isEmulator(),
+    isTablet: DeviceInfo.isTablet()
+};
+
+const config = {
+    app: "Test App",
+    server: "https://console.api.url",
+    globalize: false,
+    env: reactEnv,
+    methodsToLog: ["action", "error", "warn"],
+    toConsole: true
+};
+
+chronicle.init(config);
+```
+
 ### License
 
 Chronicle Console is released under the MIT License.
