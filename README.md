@@ -67,6 +67,8 @@ console.crash("Frontend has crashed");
 
 The npm package [react-native-device-info](https://github.com/rebeccahughes/react-native-device-info) can be linked into a react application, giving access to a variety of device info.
 
+Chronicle can be configured to overwrite the `env` variable, allowing storage of certain native device information.
+
 ```
 import DeviceInfo from "react-native-device-info";
 
