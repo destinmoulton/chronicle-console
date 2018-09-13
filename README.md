@@ -107,4 +107,4 @@ chronicle.init(config);
 
 ### License
 
-Chronicle Console is released under the MIT License.
+MIT
